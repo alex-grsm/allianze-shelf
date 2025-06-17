@@ -1,12 +1,21 @@
-/node_modules
-/vendor
+# ===================================
+# Dependencies & build artifacts
+# ===================================
+/node_modules/
+/vendor/
+
+# ===================================
+# Public directory (ignore all except .gitkeep)
 /public/*
 !/public/.gitkeep
+
+# ===================================
+# Environment files
 .env
-npm-debug.log
+.env.*  # For multiple env variants (e.g., .env.local, .env.production)
 
-
-# Logs
+# ===================================
+# Log files
 logs
 *.log
 npm-debug.log*
@@ -15,16 +24,34 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Editor directories and files
+# ===================================
+# IDE & editor folders
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
+
+# ===================================
+# Windows development files
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-package-lock.json
-.env
+
+# ===================================
+# Archive & temp files
 *.zip
+*.tar
+*.gz
+*.tmp
+
+# ===================================
+# Dependency lock files (optional)
+package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ===================================
+# PHP-specific
+composer.lock
