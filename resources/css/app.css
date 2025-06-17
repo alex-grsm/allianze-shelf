@@ -1,0 +1,45 @@
+@import 'tailwindcss' theme(static);
+@import './fonts.css';
+@import '@fortawesome/fontawesome-free/css/all.css';
+@import './styles/utilities.css';
+@import './components/header.css';
+@source "../views/";
+@source "../../app/";
+
+@theme {
+  --color-blue-600: #003781;
+  --color-purple-600: #9747ff;
+  --color-yellow-300: #fab600;
+
+  --leading-3: 1.1;
+}
+
+@layer base {
+  body {
+    @apply text-blue-600 bg-neutral-100 overflow-x-hidden;
+  }
+
+  main {
+    @apply overflow-x-hidden;
+  }
+
+  .container {
+    @apply mx-auto px-4 !max-w-[1280px];
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+
+}
+
+@layer components {
+  .hero-content {
+    @apply opacity-0 -translate-x-15 blur-sm transition-all delay-300 duration-1500 ease-in-out;
+  }
+
+  .swiper-slide-active .hero-content {
+    @apply opacity-100 translate-x-0 blur-none;
+  }
+}
+

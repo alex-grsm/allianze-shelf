@@ -1,0 +1,12 @@
+/* resources/styles/utilities.css */
+@layer utilities {
+  .h-screen-safe {
+    height: 100vh; /* fallback */
+    height: var(--full-vh, 100vh);
+  }
+
+  .min-h-screen-safe {
+    min-height: 100vh; /* fallback */
+    min-height: var(--full-vh, 100vh);
+  }
+}
