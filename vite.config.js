@@ -7,6 +7,7 @@ import { wordpressPlugin, wordpressThemeJson } from '@roots/vite-plugin';
 
 export default defineConfig({
   server: {
+    base: '/wp-content/themes/ejsage/public/',
     host: 'allianze.local',
     port: 5173,
     https: {
@@ -61,9 +62,4 @@ export default defineConfig({
       '@images': '/resources/images',
     },
   },
-
-  // build: {
-  //   outDir: 'public/build',
-  //   assetsDir: '',
-  // },
 });

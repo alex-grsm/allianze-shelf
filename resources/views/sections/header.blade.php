@@ -1,4 +1,5 @@
-<header class="bg-black text-white xl:min-h-20 flex items-center fixed top-0 left-0 right-0 z-50">
+
+<header class="header bg-black text-white xl:min-h-20 flex items-center absolute top-0 left-0 right-0 z-50">
   <div class="container ">
     <div class="flex items-center justify-between h-16">
 
@@ -20,9 +21,7 @@
             <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200">
               Products
               <div class="ml-0.5 size-4 flex items-center justify-center">
-                <svg width="11" height="6" viewBox="0 0 11 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0.704102 0.75L5.2041 5.25L9.7041 0.75" stroke="white" stroke-width="1.125" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+                <x-svg-icon name="angle-bottom" class="" />
               </div>
             </a>
           </div>
@@ -32,9 +31,7 @@
             <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200">
               Channels
               <div class="ml-0.5 size-4 flex items-center justify-center">
-                <svg width="11" height="6" viewBox="0 0 11 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0.704102 0.75L5.2041 5.25L9.7041 0.75" stroke="white" stroke-width="1.125" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+                <x-svg-icon name="angle-bottom" class="" />
               </div>
             </a>
           </div>
@@ -44,9 +41,7 @@
             <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200">
               Campaigns
               <div class="ml-0.5 size-4 flex items-center justify-center">
-                <svg width="11" height="6" viewBox="0 0 11 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0.704102 0.75L5.2041 5.25L9.7041 0.75" stroke="white" stroke-width="1.125" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+                <x-svg-icon name="angle-bottom" class="" />
               </div>
             </a>
           </div>
@@ -56,9 +51,7 @@
             <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200">
               Sales
               <div class="ml-0.5 size-4 flex items-center justify-center">
-                <svg width="11" height="6" viewBox="0 0 11 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0.704102 0.75L5.2041 5.25L9.7041 0.75" stroke="white" stroke-width="1.125" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+                <x-svg-icon name="angle-bottom" class="" />
               </div>
             </a>
           </div>
@@ -68,9 +61,7 @@
             <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200">
               Sponsoring
               <div class="ml-0.5 size-4 flex items-center justify-center">
-                <svg width="11" height="6" viewBox="0 0 11 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0.704102 0.75L5.2041 5.25L9.7041 0.75" stroke="white" stroke-width="1.125" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+                <x-svg-icon name="angle-bottom" class="" />
               </div>
             </a>
           </div>
@@ -80,22 +71,22 @@
 
       {{-- Правая часть с иконками --}}
       <div class="hidden md:block">
-        <div class="ml-4 flex items-center space-x-2">
+        <div class="ml-4 flex items-center space-x-1">
 
           {{-- Поиск --}}
-          <a href="#" class="!no-underline flex items-center justify-center text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200" aria-label="Поиск">
-            <i class="fa-solid fa-search text-xl"></i>
+          <a href="#" class="!no-underline flex items-center justify-center text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200">
+            <x-svg-icon name="search" class="size-6" />
           </a>
 
           {{-- Экспорт --}}
           <a href="#" class="text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200">
-            <i class="fa-solid fa-arrow-up-from-bracket text-xl"></i>
+            <x-svg-icon name="upload" class="size-6" />
           </a>
 
           {{-- Корзина --}}
           @if(class_exists('WooCommerce'))
-            <a href="{{ wc_get_cart_url() }}" class="text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200 relative" aria-label="Корзина">
-                <i class="fa-solid fa-cart-shopping text-xl"></i>
+            <a href="{{ wc_get_cart_url() }}" class="text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200 relative" >
+                <x-svg-icon name="cart" class="size-6" />
               @if(WC()->cart && WC()->cart->get_cart_contents_count() > 0)
                 <span class="absolute -top-1 -right-1 bg-red-500 text-xs w-5 h-5 rounded-full flex items-center justify-center">
                   {{ WC()->cart->get_cart_contents_count() }}
@@ -103,10 +94,8 @@
               @endif
             </a>
           @else
-            <a href="#" class="text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200 relative" aria-label="Корзина">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v4a2 2 0 01-2 2H9a2 2 0 01-2-2v-4m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path>
-              </svg>
+            <a href="#" class="text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200 relative">
+              <x-svg-icon name="cart" class="size-6" />
               <span class="absolute -top-1 -right-1 bg-red-500 text-xs w-5 h-5 rounded-full flex items-center justify-center">3</span>
             </a>
           @endif
@@ -120,7 +109,7 @@
             </a> --}}
           {{-- @else --}}
             <a href="{{ wp_login_url() }}" class="text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200" aria-label="Войти">
-              <i class="fa-regular fa-user text-xl"></i>
+              <x-svg-icon name="user" class="" />
             </a>
           {{-- @endauth --}}
 

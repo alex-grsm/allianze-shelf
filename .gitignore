@@ -49,8 +49,8 @@ lerna-debug.log*
 # ===================================
 # Dependency lock files (optional)
 package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+yarn.lock
+pnpm-lock.yaml
 
 # ===================================
 # PHP-specific

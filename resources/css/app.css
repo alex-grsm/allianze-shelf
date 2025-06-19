@@ -1,6 +1,6 @@
 @import 'tailwindcss' theme(static);
 @import './fonts.css';
-@import '@fortawesome/fontawesome-free/css/all.css';
+/* @import '@fortawesome/fontawesome-free/css/all.css'; */
 @import './styles/utilities.css';
 @import './components/header.css';
 @source "../views/";
@@ -19,6 +19,16 @@
     @apply text-blue-600 bg-neutral-100 overflow-x-hidden;
   }
 
+  /* Add margin to fixed header when admin bar is visible */
+  body.admin-bar .header {
+    @apply mt-8;
+  }
+  @media (max-width: 782px) {
+    body.admin-bar .header {
+      @apply mt-11;
+    }
+  }
+
   main {
     @apply overflow-x-hidden;
   }
@@ -30,7 +40,6 @@
   button {
     @apply cursor-pointer;
   }
-
 }
 
 @layer components {
@@ -42,4 +51,3 @@
     @apply opacity-100 translate-x-0 blur-none;
   }
 }
-
