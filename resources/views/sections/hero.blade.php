@@ -15,7 +15,7 @@
 
         {{-- Content Container --}}
         <div class="absolute inset-0 z-0">
-            <div class="container mx-auto px-4 relative z-10 mt-40 xl:mt-51">
+            <div class="container mx-auto px-4 relative z-10 mt-40 xl:mt-74">
                 <div class="hero-content max-w-3xl">
 
                     {{-- Heading --}}

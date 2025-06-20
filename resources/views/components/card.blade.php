@@ -1,5 +1,5 @@
 <div class="w-full bg-white rounded-2xl overflow-hidden flex flex-col">
-    <a href="#" class="!no-underline">
+    <a href="{{ get_permalink(73) }}" class="!no-underline">
         <div class="relative">
             <img src="{{ Vite::asset($image) }}" alt="{{ $title }}" class="w-full h-87.5 object-cover rounded-2xl"
                 loading="lazy">
