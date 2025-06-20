@@ -7,6 +7,8 @@
 @source "../../app/";
 
 @theme {
+  --font-inter: 'Inter', sans-serif;
+
   --color-blue-600: #003781;
   --color-purple-600: #9747ff;
   --color-yellow-300: #fab600;
@@ -15,6 +17,11 @@
 }
 
 @layer base {
+  html,
+  :host {
+    @apply font-inter;
+  }
+
   body {
     @apply text-blue-600 bg-neutral-100 overflow-x-hidden;
   }
