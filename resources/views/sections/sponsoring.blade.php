@@ -53,7 +53,7 @@
     ];
 @endphp
 <section class="py-12.5 relative">
-    <div class="pl-4 md:pl-6 lg:pl-8 xl:pl-[calc((100vw-1280px)/2+1rem)]">
+    <div class="pl-4 md:pl-6 lg:pl-8 xl:pl-[calc((100vw-1280px)/2+10px)]">
         {{-- Заголовок секции --}}
         <div class="mb-6">
             <h2 class="text-3xl lg:text-4xl">

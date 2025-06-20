@@ -1,7 +1,7 @@
 <!-- Support Section -->
 <section class="pt-32 pb-25 bg-[linear-gradient(135deg,#f3f4f6_0%,#d2d2d2_50%,#bfbfbf_100%)]">
     <div class="container">
-        <div class="p-11.5 rounded-2xl bg-[linear-gradient(102deg,#000_0%,#333_50%,#000_100%)] backdrop-blur-sm">
+        <div class="p-11.5 rounded-2xl bg-[linear-gradient(102deg,#000_0%,#333_50%,#000_100%)] backdrop-blur-sm min-h-59">
             <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
                 <!-- Заголовок -->
                 <div class="text-center lg:text-left">

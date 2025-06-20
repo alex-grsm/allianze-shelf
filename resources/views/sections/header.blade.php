@@ -1,6 +1,5 @@
-
 <header class="header bg-black text-white xl:min-h-20 flex items-center absolute top-0 left-0 right-0 z-50">
-  <div class="container ">
+  <div class="container">
     <div class="flex items-center justify-between h-16">
 
       {{-- Логотип --}}
@@ -13,57 +12,147 @@
       </div>
 
       {{-- Главное меню --}}
-      <nav class="hidden md:block">
+      <nav class="hidden md:block" x-data="{ activeDropdown: null }">
         <div class="flex items-baseline space-x-7">
 
           {{-- Products --}}
-          <div class="menu-item relative">
-            <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200">
+          <div class="menu-item relative"
+               @mouseenter="activeDropdown = 'products'"
+               @mouseleave="activeDropdown = null">
+            <a href="#" class="!no-underline block text-white px-3 py-2 flex items-center transition-colors duration-200 hover:text-gray-300">
               Products
               <div class="ml-0.5 size-4 flex items-center justify-center">
-                <x-svg-icon name="angle-bottom" class="" />
+                <x-svg-icon name="angle-bottom" class="transition-transform duration-200"
+                           x-bind:class="activeDropdown === 'products' ? 'rotate-180' : ''" />
               </div>
             </a>
+
+            {{-- Подменю Products --}}
+            <div class="absolute top-full left-0 w-48 bg-white text-black shadow-lg rounded-md overflow-hidden transition-all duration-200 transform origin-top"
+                 x-show="activeDropdown === 'products'"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                 x-cloak>
+              <a href="{{ get_term_link(17, 'product_cat') }}" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150 border-b border-gray-100">P&C</a>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150 border-b border-gray-100">Life</a>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150">Health</a>
+            </div>
           </div>
 
           {{-- Channels --}}
-          <div class="menu-item relative">
-            <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200">
+          <div class="menu-item relative"
+               @mouseenter="activeDropdown = 'channels'"
+               @mouseleave="activeDropdown = null">
+            <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200 hover:text-gray-300">
               Channels
               <div class="ml-0.5 size-4 flex items-center justify-center">
-                <x-svg-icon name="angle-bottom" class="" />
+                <x-svg-icon name="angle-bottom" class="transition-transform duration-200"
+                           x-bind:class="activeDropdown === 'channels' ? 'rotate-180' : ''" />
               </div>
             </a>
+
+            {{-- Подменю Channels (пример) --}}
+            <div class="absolute top-full left-0 w-48 bg-white text-black shadow-lg rounded-md overflow-hidden transition-all duration-200 transform origin-top"
+                 x-show="activeDropdown === 'channels'"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                 x-cloak>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150 border-b border-gray-100">Online</a>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150 border-b border-gray-100">Offline</a>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150">Partners</a>
+            </div>
           </div>
 
           {{-- Campaigns --}}
-          <div class="menu-item relative">
-            <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200">
+          <div class="menu-item relative"
+               @mouseenter="activeDropdown = 'campaigns'"
+               @mouseleave="activeDropdown = null">
+            <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200 hover:text-gray-300">
               Campaigns
               <div class="ml-0.5 size-4 flex items-center justify-center">
-                <x-svg-icon name="angle-bottom" class="" />
+                <x-svg-icon name="angle-bottom" class="transition-transform duration-200"
+                           x-bind:class="activeDropdown === 'campaigns' ? 'rotate-180' : ''" />
               </div>
             </a>
+
+            {{-- Подменю Campaigns --}}
+            <div class="absolute top-full left-0 w-48 bg-white text-black shadow-lg rounded-md overflow-hidden transition-all duration-200 transform origin-top"
+                 x-show="activeDropdown === 'campaigns'"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                 x-cloak>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150 border-b border-gray-100">Active</a>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150 border-b border-gray-100">Archived</a>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150">Templates</a>
+            </div>
           </div>
 
           {{-- Sales --}}
-          <div class="menu-item relative">
-            <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200">
+          <div class="menu-item relative"
+               @mouseenter="activeDropdown = 'sales'"
+               @mouseleave="activeDropdown = null">
+            <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200 hover:text-gray-300">
               Sales
               <div class="ml-0.5 size-4 flex items-center justify-center">
-                <x-svg-icon name="angle-bottom" class="" />
+                <x-svg-icon name="angle-bottom" class="transition-transform duration-200"
+                           x-bind:class="activeDropdown === 'sales' ? 'rotate-180' : ''" />
               </div>
             </a>
+
+            {{-- Подменю Sales --}}
+            <div class="absolute top-full left-0 w-48 bg-white text-black shadow-lg rounded-md overflow-hidden transition-all duration-200 transform origin-top"
+                 x-show="activeDropdown === 'sales'"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                 x-cloak>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150 border-b border-gray-100">Reports</a>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150 border-b border-gray-100">Analytics</a>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150">Dashboard</a>
+            </div>
           </div>
 
           {{-- Sponsoring --}}
-          <div class="menu-item relative">
-            <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200">
+          <div class="menu-item relative"
+               @mouseenter="activeDropdown = 'sponsoring'"
+               @mouseleave="activeDropdown = null">
+            <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200 hover:text-gray-300">
               Sponsoring
               <div class="ml-0.5 size-4 flex items-center justify-center">
-                <x-svg-icon name="angle-bottom" class="" />
+                <x-svg-icon name="angle-bottom" class="transition-transform duration-200"
+                           x-bind:class="activeDropdown === 'sponsoring' ? 'rotate-180' : ''" />
               </div>
             </a>
+
+            {{-- Подменю Sponsoring --}}
+            <div class="absolute top-full left-0 w-48 bg-white text-black shadow-lg rounded-md overflow-hidden transition-all duration-200 transform origin-top"
+                 x-show="activeDropdown === 'sponsoring'"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                 x-cloak>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150 border-b border-gray-100">Events</a>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150 border-b border-gray-100">Programs</a>
+              <a href="#" class="!no-underline block px-4 py-3 text-sm hover:bg-gray-100 transition-colors duration-150">Partnerships</a>
+            </div>
           </div>
 
         </div>
@@ -101,55 +190,44 @@
           @endif
 
           {{-- Аккаунт --}}
-          {{-- @auth --}}
-            {{-- <a href="{{ get_edit_user_link() }}" class="text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200" aria-label="Профиль">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-              </svg>
-            </a> --}}
-          {{-- @else --}}
-            <a href="{{ wp_login_url() }}" class="text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200" aria-label="Войти">
-              <x-svg-icon name="user" class="" />
-            </a>
-          {{-- @endauth --}}
+          <a href="{{ wp_login_url() }}" class="text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200" aria-label="Войти">
+            <x-svg-icon name="user" class="" />
+          </a>
 
         </div>
       </div>
 
       {{-- Мобильное меню кнопка --}}
-      <div class="md:hidden">
-        <button class="text-white hover:text-gray-300 p-2 rounded-md" id="mobile-menu-button" aria-label="Меню">
+      <div class="md:hidden" x-data="{ mobileMenuOpen: false }">
+        <button class="text-white hover:text-gray-300 p-2 rounded-md"
+                @@click="mobileMenuOpen = !mobileMenuOpen"
+                aria-label="Меню">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
           </svg>
         </button>
+
+        {{-- Мобильное меню --}}
+        <div class="absolute top-full left-0 right-0 bg-gray-900 shadow-lg transition-all duration-300 transform origin-top"
+             x-show="mobileMenuOpen"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95 -translate-y-4"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-95 -translate-y-4"
+             @@click.outside="mobileMenuOpen = false"
+             x-cloak>
+          <div class="px-4 pt-2 pb-3 space-y-1">
+            <a href="#" class="text-white hover:text-gray-300 block px-3 py-2 text-sm font-medium">Products</a>
+            <a href="#" class="text-white hover:text-gray-300 block px-3 py-2 text-sm font-medium">Channels</a>
+            <a href="#" class="text-white hover:text-gray-300 block px-3 py-2 text-sm font-medium">Campaigns</a>
+            <a href="#" class="text-white hover:text-gray-300 block px-3 py-2 text-sm font-medium">Sales</a>
+            <a href="#" class="text-white hover:text-gray-300 block px-3 py-2 text-sm font-medium">Sponsoring</a>
+          </div>
+        </div>
       </div>
 
     </div>
   </div>
-
-  {{-- Мобильное меню --}}
-  <div class="md:hidden hidden absolute top-14 inset-x-0 p-2 transition transform origin-top-right z-100" id="mobile-menu">
-    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-900">
-      <a href="#" class="text-white hover:text-gray-300 block px-3 py-2 text-sm font-medium">Products</a>
-      <a href="#" class="text-white hover:text-gray-300 block px-3 py-2 text-sm font-medium">Channels</a>
-      <a href="#" class="text-white hover:text-gray-300 block px-3 py-2 text-sm font-medium">Campaigns</a>
-      <a href="#" class="text-white hover:text-gray-300 block px-3 py-2 text-sm font-medium">Sales</a>
-      <a href="#" class="text-white hover:text-gray-300 block px-3 py-2 text-sm font-medium">Sponsoring</a>
-    </div>
-  </div>
 </header>
-
-{{-- Простой JavaScript для мобильного меню --}}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const mobileMenuButton = document.getElementById('mobile-menu-button');
-  const mobileMenu = document.getElementById('mobile-menu');
-
-  if (mobileMenuButton && mobileMenu) {
-    mobileMenuButton.addEventListener('click', function() {
-      mobileMenu.classList.toggle('hidden');
-    });
-  }
-});
-</script>

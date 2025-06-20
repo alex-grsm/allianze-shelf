@@ -1,14 +1,14 @@
 @php
-    $campaigns = [
+    $car = [
         [
-            'image' => 'resources/images/demo/prod-1.webp',
-            'label' => 'Featured',
-            'flag' => 'DE',
-            'title' => 'Always drive well',
-            'target' => 'drivers, families, commuters',
+            'image' => 'resources/images/demo/prod-4.webp',
+            'label' => null,
+            'flag' => null,
+            'title' => 'MoveNow',
+            'target' => 'young & sporty people',
             'year' => '2023',
-            'buyout' => '45.000€*',
-            'tag' => 'Car Insurance',
+            'buyout' => '1€',
+            'tag' => 'OPM Partnership',
         ],
         [
             'image' => 'resources/images/demo/prod-2.webp',
@@ -31,16 +31,6 @@
             'tag' => 'Retirement',
         ],
         [
-            'image' => 'resources/images/demo/prod-4.webp',
-            'label' => null,
-            'flag' => null,
-            'title' => 'MoveNow',
-            'target' => 'young & sporty people',
-            'year' => '2023',
-            'buyout' => '1€',
-            'tag' => 'OPM Partnership',
-        ],
-        [
             'image' => 'resources/images/demo/prod-5.webp',
             'label' => null,
             'flag' => 'AT',
@@ -49,6 +39,16 @@
             'year' => '2023',
             'buyout' => '1€',
             'tag' => 'OPM Partnership',
+        ],
+        [
+            'image' => 'resources/images/demo/prod-1.webp',
+            'label' => 'Featured',
+            'flag' => 'DE',
+            'title' => 'Always drive well',
+            'target' => 'drivers, families, commuters',
+            'year' => '2023',
+            'buyout' => '45.000€*',
+            'tag' => 'Car Insurance',
         ],
         [
             'image' => 'resources/images/demo/prod-5.webp',
@@ -72,25 +72,28 @@
         ],
     ];
 @endphp
-<section class="pb-12.5 -mt-103.5 z-20 relative">
+<section class="pb-12.5 -mt-120 z-20 relative">
     <div class="pl-4 md:pl-6 lg:pl-8 xl:pl-[calc((100vw-1280px)/2+10px)]">
         {{-- Заголовок секции --}}
-        <div class="mb-6">
+        <div class="mb-6 max-w-5xl">
             <h2 class="text-3xl text-white lg:text-4xl">
-                Campaigns
+                Car
             </h2>
+
+            <div class="mt-4">
+                <button type="button"
+                    class="inline-flex items-center gap-2 px-3 py-1 bg-black  border-2 border-white rounded-4xl text-white text-xl">
+                    <x-svg-icon name="filter" class="" />
+                    <span>Filter</span>
+                </button>
+            </div>
         </div>
 
-        {{-- <div class="flex  gap-6">
-            @foreach ($campaigns as $campaign)
-                @include('components.card', $campaign)
-            @endforeach
-        </div> --}}
         <div class="crop-cards-slider ">
             <div class="swiper-wrapper">
-                @foreach ($campaigns as $campaign)
+                @foreach ($car as $item)
                     <div class="swiper-slide">
-                        @include('components.card', $campaign)
+                        @include('components.card', $item)
                     </div>
                 @endforeach
             </div>

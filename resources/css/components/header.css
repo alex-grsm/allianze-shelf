@@ -1,5 +1,5 @@
-/* Линия снизу при hover */
-.menu-item a::after {
+
+.menu-item > a::after {
   content: '';
   position: absolute;
   bottom: 4px; /* Отступ от текста */
@@ -12,28 +12,12 @@
 }
 
 /* Hover эффект */
-.menu-item:hover a {
+.menu-item:hover > a {
   @apply text-white; /* Остается белым при hover */
 }
 
-.menu-item:hover a::after {
+.menu-item:hover > a::after {
   width: 74%; /* Линия растягивается на всю ширину */
 }
 
-/* Стили для SVG стрелки */
-.menu-item svg {
-  transition: transform 0.2s ease;
-}
 
-.menu-item:hover svg {
-  transform: rotate(180deg);
-}
-
-/* Убираем стандартное подчеркивание */
-.menu-item a {
-  text-decoration: none !important;
-}
-
-.menu-item a:hover {
-  text-decoration: none !important;
-}

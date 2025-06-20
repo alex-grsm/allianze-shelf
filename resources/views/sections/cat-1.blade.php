@@ -87,8 +87,16 @@
         {{-- Заголовок секции --}}
         <div class="mb-6">
             <h2 class="text-3xl lg:text-4xl">
-                Products
+                Home
             </h2>
+
+            <div class="mt-4">
+                <button type="button"
+                    class="inline-flex items-center gap-2 px-3 py-1 neutral-100 border-2 border-black rounded-4xl text-black text-xl">
+                    <x-svg-icon name="filter" class="[&_path]:stroke-black" />
+                    <span>Filter</span>
+                </button>
+            </div>
         </div>
 
         <div class="crop-cards-slider ">
