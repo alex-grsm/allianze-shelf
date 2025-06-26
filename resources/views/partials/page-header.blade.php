@@ -1,3 +1,3 @@
-<div class="page-header">
+{{-- <div class="page-header">
   <h1>{!! $title !!} fsdf</h1>
-</div>
+</div> --}}

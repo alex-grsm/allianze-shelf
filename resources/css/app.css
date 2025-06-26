@@ -39,6 +39,17 @@
     }
   }
 
+  .page-header {
+    display: none !important;
+  }
+  .woocommerce div.product {
+    margin-top: 100px;
+  }
+  .wp-block-woocommerce-checkout,
+  .woocommerce-order {
+    padding: 100px !important;
+  }
+
   main {
     @apply overflow-x-hidden;
   }
