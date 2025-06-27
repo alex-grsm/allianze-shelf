@@ -61,6 +61,11 @@
   button {
     @apply cursor-pointer;
   }
+
+  .product-description ul,
+  .product-description ol {
+    @apply list-disc pl-4;
+  }
 }
 
 @layer components {
