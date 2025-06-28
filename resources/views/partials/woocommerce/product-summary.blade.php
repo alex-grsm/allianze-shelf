@@ -1,6 +1,6 @@
 {{-- resources/views/partials/product-data.blade.php --}}
 
-@dump($productSummary ?? 'productSummary не определена')
+{{-- @dump($productSummary ?? 'productSummary не определена') --}}
 
 {{-- --------------------------------------------------------------- --}}
 <section class="py-20">
@@ -131,6 +131,16 @@
 
                     <!-- Доступность и форма покупки -->
 <div class="space-y-4" x-data="cartHandler({{ json_encode($productSummary['variations']) }})">
+      <div x-show="alertVisible" x-transition
+         class="mb-4 px-2 py-1 rounded"
+         :class="{
+           'bg-green-400 text-green-50': alertType === 'success',
+           'bg-yellow-400 text-yellow-50': alertType === 'caution',
+           'bg-red-400 text-red-50': alertType === 'warning',
+           'bg-indigo-400 text-indigo-50': alertType === 'info',
+         }"
+         x-text="alertMessage"
+    ></div>
     <p class="text-sm text-gray-600">
         Rights available until 12/2026
     </p>
@@ -190,28 +200,28 @@
 function cartHandler(variations) {
     return {
         selectedVariation: null,
+        alertVisible: false,
+        alertType: 'info',
+        alertMessage: '',
 
         async addToCart(variationId) {
             if (!variationId) {
-                alert('Please select a variation.');
+                showGlobalAlert('warning', 'Пожалуйста, выберите вариацию.');
                 return;
             }
 
-            // Находим выбранную вариацию
             const variation = variations.find(v => v.id === variationId);
             if (!variation) {
-                alert('Invalid variation');
+                showGlobalAlert('warning', 'Неверная вариация.');
                 return;
             }
 
-            // Создаем formData
             const formData = new FormData();
             formData.append('_wpnonce', '{{ wp_create_nonce("add_to_cart") }}');
             formData.append('action', 'woocommerce_ajax_add_to_cart');
             formData.append('product_id', variationId);
             formData.append('variation_id', variationId);
 
-            // Добавляем атрибуты
             for (const [key, value] of Object.entries(variation.raw_attributes)) {
                 formData.append(key, value);
             }
@@ -229,13 +239,14 @@ function cartHandler(variations) {
                 const result = await response.json();
 
                 if (result.error) {
-                    alert(result.error);
+                    showGlobalAlert('warning', result.error);
                 } else {
                     console.log('Product added:', result);
-                    alert('Product added to cart!');
+                    showGlobalAlert('success', 'Товар успешно добавлен в корзину!');
                 }
             } catch (e) {
                 console.error('Error adding to cart', e);
+                showGlobalAlert('warning', 'Ошибка при добавлении товара.');
             }
         }
     }
