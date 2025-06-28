@@ -79,7 +79,7 @@
                 <!-- Цены и покупка -->
                 <div class="mb-4">
                   <!-- Стоимость компенсации -->
-@if ($productSummary['type'] === 'variable' && $productSummary['variations'])
+{{-- @if ($productSummary['type'] === 'variable' && $productSummary['variations'])
     <div class="flex gap-5 mb-4" x-data="{ selectedVariation: null }">
         @foreach ($productSummary['variations'] as $variation)
             <div
@@ -127,55 +127,58 @@
     <div class="simple-product-price">
         {{ $productSummary['price'] }}
     </div>
-@endif
+@endif --}}
 
                     <!-- Доступность и форма покупки -->
-                    <div class="space-y-4">
-                        <p class="text-sm text-gray-600">
-                            Rights available until 12/2026
-                        </p>
+<div class="space-y-4" x-data="cartHandler({{ json_encode($productSummary['variations']) }})">
+    <p class="text-sm text-gray-600">
+        Rights available until 12/2026
+    </p>
 
-                        <div x-data="{
-                            quantity: 1,
-                            showSuccess: false,
-                            addToCart() {
-                                this.showSuccess = true;
-                                setTimeout(() => this.showSuccess = false, 3000);
-                            }
-                        }" class="space-y-4">
 
-                            <!-- Кнопки действий -->
-                            <div class="flex items-center gap-4">
-                                <button @click="addToCart()"
-                                    class="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]">
-                                    Add to cart
-                                </button>
-
-                                <button class="p-4 rounded-full border border-gray-300 hover:border-gray-400 transition-colors">
-                                    <x-svg-icon name="heart" class="transition-transform duration-200" />
-                                </button>
-
-                                <button class="p-4 rounded-full border border-gray-300 hover:border-gray-400 transition-colors">
-                                    <x-svg-icon name="share" class="transition-transform duration-200" />
-                                </button>
-                            </div>
-
-                            <!-- Уведомление об успехе -->
-                            <div x-show="showSuccess" x-transition:enter="transition ease-out duration-300"
-                                x-transition:enter-start="opacity-0 transform translate-y-2"
-                                x-transition:enter-end="opacity-100 transform translate-y-0"
-                                x-transition:leave="transition ease-in duration-200"
-                                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                                class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg flex items-center gap-3">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                        clip-rule="evenodd"></path>
-                                </svg>
-                                <span>Product added to cart!</span>
-                            </div>
+    @if ($productSummary['type'] === 'variable')
+        <div class="flex flex-col gap-4">
+            <div class="flex gap-5 mb-4">
+                @foreach ($productSummary['variations'] as $variation)
+                    <div
+                        class="border-2 rounded-lg px-5 py-4 flex flex-col justify-between cursor-pointer transition-colors max-w-56"
+                        :class="selectedVariation === {{ $variation['id'] }} ? 'border-blue-600' : 'border-[#e9e5e5]'"
+                        @click="selectedVariation = {{ $variation['id'] }}"
+                    >
+                        <div class="font-bold mb-1 text-xs">Compensation Costs</div>
+                        <div class="text-xs mb-3">
+                            @foreach ($variation['raw_attributes'] as $attribute_name => $attribute_value)
+                                @if (!empty($attribute_value))
+                                    <span class="attribute">{{ $attribute_value }}</span>
+                                @endif
+                            @endforeach
+                        </div>
+                        <div class="text-xl font-medium">
+                            {{ $variation['regular_price'] }} €
                         </div>
                     </div>
+                @endforeach
+            </div>
+
+            <button
+                type="button"
+                @click="addToCart(selectedVariation)"
+                x-bind:disabled="!selectedVariation"
+                class="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50">
+                Add to cart
+            </button>
+        </div>
+    @else
+        <button
+            type="button"
+            @click="addToCart({{ $productSummary['id'] }})"
+            class="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]">
+            Add to cart
+        </button>
+    @endif
+</div>
+
+
                 </div>
 
             </div>
@@ -183,33 +186,58 @@
     </div>
 </section>
 
-<!-- Дополнительные стили для демо -->
-<style>
-    /* Кастомные стили для инпута количества */
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
+<script>
+function cartHandler(variations) {
+    return {
+        selectedVariation: null,
 
-    input[type="number"] {
-        -moz-appearance: textfield;
-    }
+        async addToCart(variationId) {
+            if (!variationId) {
+                alert('Please select a variation.');
+                return;
+            }
 
-    /* Анимация для кнопок */
-    @keyframes pulse {
+            // Находим выбранную вариацию
+            const variation = variations.find(v => v.id === variationId);
+            if (!variation) {
+                alert('Invalid variation');
+                return;
+            }
 
-        0%,
-        100% {
-            opacity: 1;
+            // Создаем formData
+            const formData = new FormData();
+            formData.append('_wpnonce', '{{ wp_create_nonce("add_to_cart") }}');
+            formData.append('action', 'woocommerce_ajax_add_to_cart');
+            formData.append('product_id', variationId);
+            formData.append('variation_id', variationId);
+
+            // Добавляем атрибуты
+            for (const [key, value] of Object.entries(variation.raw_attributes)) {
+                formData.append(key, value);
+            }
+
+            try {
+                const response = await fetch('{{ admin_url("admin-ajax.php") }}', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    alert(result.error);
+                } else {
+                    console.log('Product added:', result);
+                    alert('Product added to cart!');
+                }
+            } catch (e) {
+                console.error('Error adding to cart', e);
+            }
         }
-
-        50% {
-            opacity: .5;
-        }
     }
-
-    .animate-pulse {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-</style>
+}
+</script>

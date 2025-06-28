@@ -7,6 +7,7 @@
 namespace App;
 
 use Illuminate\Support\Facades\Vite;
+use App\WooCommerce\CartAjax;
 
 /**
  * Inject styles into the block editor.
@@ -169,3 +170,7 @@ add_action('widgets_init', function () {
 
 // require_once __DIR__ . '/wc-template-hooks.php';
 
+/**
+ * Custom AJAX handler for adding product to cart.
+ */
+CartAjax::register();
