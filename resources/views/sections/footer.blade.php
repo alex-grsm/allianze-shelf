@@ -59,8 +59,6 @@
     </div>
 </footer>
 
-<x-alert />
-
 {{-- <footer class="content-info">
   @php(dynamic_sidebar('sidebar-footer'))
 </footer> --}}

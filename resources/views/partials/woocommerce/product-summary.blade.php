@@ -1,6 +1,6 @@
 {{-- resources/views/partials/product-data.blade.php --}}
 
-{{-- @dump($productSummary ?? 'productSummary не определена') --}}
+@dump($productSummary ?? 'productSummary не определена')
 
 {{-- --------------------------------------------------------------- --}}
 <section class="py-20">
@@ -14,8 +14,13 @@
                     <div class="w-full h-full flex items-center justify-center">
                         <div class="text-center">
                             <div class="text-6xl mb-4">
-                                <img src="{{ Vite::asset('resources/images/demo/single-prod-0.webp') }}"
-                                    alt="Product Image" class="w-full h-full object-cover">
+                              @if($productSummary['image'])
+                                  <img src="{{ $productSummary['image']['full']['url'] }}"
+                                      alt="{{ $productSummary['image']['alt'] }}"
+                                      width="{{ $productSummary['image']['full']['width'] }}"
+                                      height="{{ $productSummary['image']['full']['height'] }}"
+                                      class="w-full aspect-square object-cover">
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -78,76 +83,13 @@
 
                 <!-- Цены и покупка -->
                 <div class="mb-4">
-                  <!-- Стоимость компенсации -->
-{{-- @if ($productSummary['type'] === 'variable' && $productSummary['variations'])
-    <div class="flex gap-5 mb-4" x-data="{ selectedVariation: null }">
-        @foreach ($productSummary['variations'] as $variation)
-            <div
-                class="border-2 rounded-lg px-5 py-4 flex flex-col justify-between cursor-pointer transition-colors max-w-56"
-                :class="selectedVariation === {{ $variation['id'] }} ? 'border-blue-600' : 'border-[#e9e5e5]'"
-                @click="selectedVariation = {{ $variation['id'] }}"
-            >
-                @php
-                    // Проверяем, есть ли непустые атрибуты
-                    $hasNonEmptyAttributes = false;
-                    $titleAttribute = 'Compensation Costs';
-
-                    if ($variation['attributes']) {
-                        foreach ($variation['attributes'] as $name => $value) {
-                            if (!empty($value)) {
-                                $hasNonEmptyAttributes = true;
-                                $titleAttribute = $name;
-                                break;
-                            }
-                        }
-                    }
-                @endphp
-
-                <div class="font-bold mb-1 text-xs">{{ $titleAttribute }}</div>
-                <div class="text-xs mb-3">
-                    @if ($variation['attributes'])
-                        @foreach ($variation['attributes'] as $attribute_name => $attribute_value)
-                            @if (!empty($attribute_value))
-                                <span class="attribute">{{ $attribute_value }}</span>
-                            @endif
-                        @endforeach
-                    @endif
-                </div>
-                <div class="text-xl font-medium">
-                    @if ($hasNonEmptyAttributes)
-                        <span class="text-xs font-normal">from</span> {{ $variation['regular_price'] }} €
-                    @else
-                        {{ $variation['regular_price'] }} €
-                    @endif
-                </div>
-            </div>
-        @endforeach
-    </div>
-@else
-    <div class="simple-product-price">
-        {{ $productSummary['price'] }}
-    </div>
-@endif --}}
-
                     <!-- Доступность и форма покупки -->
 <div class="space-y-4" x-data="cartHandler({{ json_encode($productSummary['variations']) }})">
-      <div x-show="alertVisible" x-transition
-         class="mb-4 px-2 py-1 rounded"
-         :class="{
-           'bg-green-400 text-green-50': alertType === 'success',
-           'bg-yellow-400 text-yellow-50': alertType === 'caution',
-           'bg-red-400 text-red-50': alertType === 'warning',
-           'bg-indigo-400 text-indigo-50': alertType === 'info',
-         }"
-         x-text="alertMessage"
-    ></div>
-    <p class="text-sm text-gray-600">
-        Rights available until 12/2026
-    </p>
-
+    {{-- Локальные уведомления для вариаций --}}
+    <x-local-alert />
 
     @if ($productSummary['type'] === 'variable')
-        <div class="flex flex-col gap-4">
+        <div class="flex flex-col">
             <div class="flex gap-5 mb-4">
                 @foreach ($productSummary['variations'] as $variation)
                     <div
@@ -170,24 +112,38 @@
                 @endforeach
             </div>
 
-            <button
-                type="button"
-                @click="addToCart(selectedVariation)"
-                x-bind:disabled="!selectedVariation"
-                class="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50">
-                Add to cart
-            </button>
+
+            <div class="mb-8">
+                <div class="text-xs mb-1 font-bold">Rights available until</div>
+                <div>12/2026</div>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <button
+                  type="button"
+                  @click="addToCart(selectedVariation)"
+                  class="flex-1 bg-blue-600 hover:bg-blue-800 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]">
+                  Add to cart
+              </button>
+
+              <button class="p-4 rounded-full border border-gray-300 hover:border-gray-400 transition-colors">
+                  <x-svg-icon name="heart" class="transition-transform duration-200" />
+              </button>
+
+              <button class="p-4 rounded-full border border-gray-300 hover:border-gray-400 transition-colors">
+                  <x-svg-icon name="share" class="transition-transform duration-200" />
+              </button>
+            </div>
         </div>
     @else
         <button
             type="button"
             @click="addToCart({{ $productSummary['id'] }})"
-            class="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]">
+            class="flex-1 bg-blue-600 hover:bg-blue-800 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]">
             Add to cart
         </button>
     @endif
 </div>
-
 
                 </div>
 
@@ -196,25 +152,52 @@
     </div>
 </section>
 
-<script>
+{{-- <script>
 function cartHandler(variations) {
     return {
         selectedVariation: null,
-        alertVisible: false,
-        alertType: 'info',
-        alertMessage: '',
+        variationAlert: {
+            show: false,
+            type: 'info',
+            message: ''
+        },
+
+        showVariationAlert(type, message) {
+            this.variationAlert = {
+                show: true,
+                type: type,
+                message: message
+            };
+
+            // Автоматически скрыть через 4 секунды
+            clearTimeout(this.alertTimeout);
+            this.alertTimeout = setTimeout(() => {
+                this.hideVariationAlert();
+            }, 4000);
+        },
+
+        hideVariationAlert() {
+            this.variationAlert.show = false;
+            clearTimeout(this.alertTimeout);
+        },
 
         async addToCart(variationId) {
+            // Скрываем предыдущие уведомления
+            this.hideVariationAlert();
+
             if (!variationId) {
-                showGlobalAlert('warning', 'Пожалуйста, выберите вариацию.');
+                this.showVariationAlert('warning', 'Please select a variation before adding to cart.');
                 return;
             }
 
             const variation = variations.find(v => v.id === variationId);
             if (!variation) {
-                showGlobalAlert('warning', 'Неверная вариация.');
+                this.showVariationAlert('error', 'The selected variation is not available.');
                 return;
             }
+
+            // Показываем индикатор загрузки
+            this.showVariationAlert('info', 'Adding product to cart...');
 
             const formData = new FormData();
             formData.append('_wpnonce', '{{ wp_create_nonce("add_to_cart") }}');
@@ -239,16 +222,21 @@ function cartHandler(variations) {
                 const result = await response.json();
 
                 if (result.error) {
-                    showGlobalAlert('warning', result.error);
+                    this.showVariationAlert('error', result.error);
                 } else {
                     console.log('Product added:', result);
-                    showGlobalAlert('success', 'Товар успешно добавлен в корзину!');
+                    this.showVariationAlert('success', 'The product has been successfully added to your cart!');
+
+                    // Обновить счетчик корзины, если функция существует
+                    if (window.updateCartCount && typeof window.updateCartCount === 'function') {
+                        window.updateCartCount();
+                    }
                 }
             } catch (e) {
                 console.error('Error adding to cart', e);
-                showGlobalAlert('warning', 'Ошибка при добавлении товара.');
+                this.showVariationAlert('error', 'There was an error adding the item to your cart. Please try again.');
             }
         }
     }
 }
-</script>
+</script> --}}

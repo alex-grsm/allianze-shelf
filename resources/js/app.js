@@ -3,5 +3,5 @@ import.meta.glob([
   '../fonts/**',
 ]);
 
-
+import './components/product-cart.js';
 import './main.js';

@@ -1,13 +1,14 @@
 // resources/js/main.js
 import Alpine from 'alpinejs';
 
-import { showGlobalAlert } from './helpers/alert.js';
+import { showGlobalAlert, hideGlobalAlert } from './helpers/alert.js';
 import viewportHeight from './helpers/viewport-height.js';
 import SwiperComponent from './components/swiper.js';
 // import { productVariationsComponent } from './modules/woocommerce-cart';
 
 window.Alpine = Alpine;
 window.showGlobalAlert = showGlobalAlert;
+window.hideGlobalAlert = hideGlobalAlert;
 // window.cartHandler = cartHandler;
 
 
@@ -18,8 +19,9 @@ function initApp() {
   viewportHeight.init();
   SwiperComponent.init();
 
+  // Тестовый алерт (можно убрать)
   // setTimeout(() => {
-  //   showGlobalAlert('success', 'Тестовый алерт');
+  //   showGlobalAlert('success', 'Система уведомлений готова!');
   // }, 1000);
 
 }
