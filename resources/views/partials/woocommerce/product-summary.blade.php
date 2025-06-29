@@ -132,21 +132,19 @@
                                       class="flex-1 bg-blue-600 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none">
                                       <span x-show="!loading">Add to cart</span>
                                       <span x-show="loading" class="flex items-center justify-center gap-2">
-                                          <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                          </svg>
+                                          <x-svg-icon name="loader" class="animate-spin w-5 h-5" />
                                           Loading...
                                       </span>
                                   </button>
-<button @click="toggleWishlist()"
-        x-bind:class="isInWishlist ? 'border-red-300 bg-red-50' : 'border-gray-300'"
-        class="p-4 rounded-full border hover:border-gray-400 transition-colors">
-    <span class="transition-transform duration-200">
-        <x-svg-icon name="heart" x-show="!isInWishlist" />
-        <x-svg-icon name="heart-red" x-show="isInWishlist" />
-    </span>
-</button>
+
+                                  <button @click="toggleWishlist()"
+                                          x-bind:class="isInWishlist ? 'border-red-300 bg-red-50' : 'border-gray-300'"
+                                          class="p-4 rounded-full border hover:border-gray-400 transition-colors">
+                                      <span class="transition-transform duration-200">
+                                          <x-svg-icon name="heart" x-show="!isInWishlist" />
+                                          <x-svg-icon name="heart-red" x-show="isInWishlist" />
+                                      </span>
+                                  </button>
 
                                   <button @click="shareProduct()"
                                           class="p-4 rounded-full border border-gray-300 hover:border-gray-400 transition-colors">
@@ -163,10 +161,7 @@
                                 class="flex-1 bg-blue-600 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none">
                                 <span x-show="!loading">Add to cart</span>
                                 <span x-show="loading" class="flex items-center justify-center gap-2">
-                                    <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
+                                    <x-svg-icon name="loader" class="animate-spin w-5 h-5" />
                                     Loading...
                                 </span>
                             </button>
@@ -179,92 +174,3 @@
         </div>
     </div>
 </section>
-
-{{-- <script>
-function cartHandler(variations) {
-    return {
-        selectedVariation: null,
-        variationAlert: {
-            show: false,
-            type: 'info',
-            message: ''
-        },
-
-        showVariationAlert(type, message) {
-            this.variationAlert = {
-                show: true,
-                type: type,
-                message: message
-            };
-
-            // Автоматически скрыть через 4 секунды
-            clearTimeout(this.alertTimeout);
-            this.alertTimeout = setTimeout(() => {
-                this.hideVariationAlert();
-            }, 4000);
-        },
-
-        hideVariationAlert() {
-            this.variationAlert.show = false;
-            clearTimeout(this.alertTimeout);
-        },
-
-        async addToCart(variationId) {
-            // Скрываем предыдущие уведомления
-            this.hideVariationAlert();
-
-            if (!variationId) {
-                this.showVariationAlert('warning', 'Please select a variation before adding to cart.');
-                return;
-            }
-
-            const variation = variations.find(v => v.id === variationId);
-            if (!variation) {
-                this.showVariationAlert('error', 'The selected variation is not available.');
-                return;
-            }
-
-            // Показываем индикатор загрузки
-            this.showVariationAlert('info', 'Adding product to cart...');
-
-            const formData = new FormData();
-            formData.append('_wpnonce', '{{ wp_create_nonce("add_to_cart") }}');
-            formData.append('action', 'woocommerce_ajax_add_to_cart');
-            formData.append('product_id', variationId);
-            formData.append('variation_id', variationId);
-
-            for (const [key, value] of Object.entries(variation.raw_attributes)) {
-                formData.append(key, value);
-            }
-
-            try {
-                const response = await fetch('{{ admin_url("admin-ajax.php") }}', {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-
-                const result = await response.json();
-
-                if (result.error) {
-                    this.showVariationAlert('error', result.error);
-                } else {
-                    console.log('Product added:', result);
-                    this.showVariationAlert('success', 'The product has been successfully added to your cart!');
-
-                    // Обновить счетчик корзины, если функция существует
-                    if (window.updateCartCount && typeof window.updateCartCount === 'function') {
-                        window.updateCartCount();
-                    }
-                }
-            } catch (e) {
-                console.error('Error adding to cart', e);
-                this.showVariationAlert('error', 'There was an error adding the item to your cart. Please try again.');
-            }
-        }
-    }
-}
-</script> --}}
