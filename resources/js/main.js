@@ -4,6 +4,7 @@ import Alpine from 'alpinejs';
 import { showGlobalAlert, hideGlobalAlert } from './helpers/alert.js';
 import viewportHeight from './helpers/viewport-height.js';
 import SwiperComponent from './components/swiper.js';
+import './components/product-cart.js';
 // import { productVariationsComponent } from './modules/woocommerce-cart';
 
 window.Alpine = Alpine;
