@@ -1,6 +1,6 @@
 {{-- resources/views/partials/woocommerce/product-summary.blade.php --}}
 
-@dump($productSummary ?? 'productSummary не определена')
+{{-- @dump($productSummary ?? 'productSummary не определена') --}}
 
 {{-- --------------------------------------------------------------- --}}
 <section class="py-20">

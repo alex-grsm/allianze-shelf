@@ -155,8 +155,13 @@ document.addEventListener('alpine:init', () => {
             console.log('Product added to cart:', result);
             this.showVariationAlert('success', 'Product successfully added to cart!');
 
-            // Обновляем счетчик корзины
-            this.updateCartCount();
+            // Если в ответе есть cart_count, используем его
+            if (result.cart_count !== undefined) {
+                this.updateCartCountDirect(result.cart_count);
+            } else {
+                // Иначе делаем отдельный запрос
+                this.updateCartCount();
+            }
 
             // Диспатчим кастомное событие
             this.$dispatch('product-added-to-cart', {
@@ -164,8 +169,13 @@ document.addEventListener('alpine:init', () => {
                 result: result
             });
 
-            // Обновляем URL параметры браузера (опционально)
             this.updateBrowserState();
+        },
+
+        updateCartCountDirect(count) {
+            document.dispatchEvent(new CustomEvent('cart-count-updated', {
+                detail: { count: parseInt(count) }
+            }));
         },
 
         // Обновление счетчика корзины
@@ -284,4 +294,46 @@ document.addEventListener('alpine:init', () => {
             }
         }
     }));
+
+      Alpine.data('cartCounter', () => ({
+        count: 0,
+
+        init() {
+            this.count = parseInt(document.querySelector('[data-cart-count]')?.textContent || '0');
+
+            // Слушаем прямое обновление счетчика
+            document.addEventListener('cart-count-updated', (e) => {
+                this.count = e.detail.count;
+            });
+
+            // Слушаем события для запроса счетчика
+            document.addEventListener('cart-updated', () => {
+                this.fetchCartCount();
+            });
+
+            document.body.addEventListener('added_to_cart', () => {
+                this.fetchCartCount();
+            });
+        },
+
+        async fetchCartCount() {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'get_cart_count');
+
+                const response = await fetch(window.wc_add_to_cart_params?.ajax_url || '/wp-admin/admin-ajax.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    this.count = parseInt(result.data.count);
+                }
+            } catch (error) {
+                console.error('Error fetching cart count:', error);
+            }
+        }
+  }));
 });

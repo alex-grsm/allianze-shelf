@@ -8,6 +8,10 @@ class CartAjax
     {
         add_action('wp_ajax_woocommerce_ajax_add_to_cart', [self::class, 'handleAddToCart']);
         add_action('wp_ajax_nopriv_woocommerce_ajax_add_to_cart', [self::class, 'handleAddToCart']);
+
+        // Добавляем новый handler для получения количества
+        add_action('wp_ajax_get_cart_count', [self::class, 'getCartCount']);
+        add_action('wp_ajax_nopriv_get_cart_count', [self::class, 'getCartCount']);
     }
 
     public static function handleAddToCart()
@@ -35,10 +39,26 @@ class CartAjax
         if ($added) {
             wp_send_json_success([
                 'message' => 'Product added',
-                'cart' => WC()->cart->get_cart()
+                'cart' => WC()->cart->get_cart(),
+                'cart_count' => WC()->cart->get_cart_contents_count() // Добавляем счетчик сразу
             ]);
         } else {
             wp_send_json_error('Could not add to cart');
         }
+    }
+
+    /**
+     * Получение количества товаров в корзине
+     */
+    public static function getCartCount()
+    {
+        if (!class_exists('WooCommerce')) {
+            wp_send_json_error(['message' => 'WooCommerce not available']);
+        }
+
+        wp_send_json_success([
+            'count' => WC()->cart->get_cart_contents_count(),
+            'total' => WC()->cart->get_cart_total()
+        ]);
     }
 }

@@ -4,7 +4,7 @@
     "src": "editor.deps.json"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CM6Kdgz3.css",
+    "file": "assets/app-DLcDMUlA.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "names": [
@@ -12,7 +12,7 @@
     ]
   },
   "resources/css/editor.css": {
-    "file": "assets/editor-Tj10Y1tl.css",
+    "file": "assets/editor-DUigwrnQ.css",
     "src": "resources/css/editor.css",
     "isEntry": true,
     "names": [
@@ -223,6 +223,10 @@
     "file": "assets/heart-nr5W8wD0.svg",
     "src": "resources/images/icons/heart.svg"
   },
+  "resources/images/icons/loader.svg": {
+    "file": "assets/loader-BlyhrDCy.svg",
+    "src": "resources/images/icons/loader.svg"
+  },
   "resources/images/icons/search.svg": {
     "file": "assets/search-CTCzYUrU.svg",
     "src": "resources/images/icons/search.svg"
@@ -248,7 +252,7 @@
     "src": "resources/images/logo.svg"
   },
   "resources/js/app.js": {
-    "file": "assets/app-DLCOu8Dh.js",
+    "file": "assets/app-Cq_o0sbB.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,

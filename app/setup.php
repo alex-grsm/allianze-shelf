@@ -174,3 +174,4 @@ add_action('widgets_init', function () {
  * Custom AJAX handler for adding product to cart.
  */
 CartAjax::register();
+

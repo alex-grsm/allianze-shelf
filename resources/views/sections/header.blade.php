@@ -174,14 +174,16 @@
 
           {{-- Корзина --}}
           @if(class_exists('WooCommerce'))
-            <a href="{{ wc_get_cart_url() }}" class="text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200 relative" >
+            <div x-data="cartCounter" x-init="count = {{ WC()->cart->get_cart_contents_count() }}">
+              <a href="{{ wc_get_cart_url() }}" class="block text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200 relative">
                 <x-svg-icon name="cart" class="size-6" />
-              @if(WC()->cart && WC()->cart->get_cart_contents_count() > 0)
-                <span class="absolute -top-1 -right-1 bg-red-500 text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {{ WC()->cart->get_cart_contents_count() }}
+                <span x-show="count > 0"
+                      x-text="count"
+                      x-transition
+                      class="absolute -top-1 -right-1 bg-red-500 text-xs w-5 h-5 rounded-full flex items-center justify-center">
                 </span>
-              @endif
-            </a>
+              </a>
+            </div>
           @else
             <a href="#" class="text-white hover:text-gray-300 p-2 rounded-md transition-colors duration-200 relative">
               <x-svg-icon name="cart" class="size-6" />
