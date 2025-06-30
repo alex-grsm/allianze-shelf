@@ -19,7 +19,7 @@
           <div class="menu-item relative"
                @mouseenter="activeDropdown = 'products'"
                @mouseleave="activeDropdown = null">
-            <a href="#" class="!no-underline block text-white px-3 py-2 flex items-center transition-colors duration-200 hover:text-gray-300">
+            <a href="#" class="!no-underline text-white px-3 py-2 flex items-center transition-colors duration-200 hover:text-gray-300">
               Products
               <div class="ml-0.5 size-4 flex items-center justify-center">
                 <x-svg-icon name="angle-bottom" class="transition-transform duration-200"

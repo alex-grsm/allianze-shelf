@@ -12,17 +12,12 @@
                 <div class="overflow-hidden relative">
                     <!-- Демо изображение с картонными фигурками -->
                     <div class="w-full h-full flex items-center justify-center">
-                        <div class="text-center">
-                            <div class="text-6xl mb-4">
-                              @if($productSummary['image'])
-                                  <img src="{{ $productSummary['image']['full']['url'] }}"
-                                      alt="{{ $productSummary['image']['alt'] }}"
-                                      width="{{ $productSummary['image']['full']['width'] }}"
-                                      height="{{ $productSummary['image']['full']['height'] }}"
-                                      class="w-full aspect-square object-cover">
-                                @endif
-                            </div>
-                        </div>
+
+                      <div class="w-full">
+                        {{-- Галерея продукта --}}
+                        @include('partials.woocommerce.product-gallery', ['productSummary' => $productSummary])
+                      </div>
+
                     </div>
                 </div>
             </div>
