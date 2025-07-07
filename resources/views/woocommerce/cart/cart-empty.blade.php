@@ -12,7 +12,7 @@
 @extends('layouts.app')
 
 @section('content')
-  @include('sections.hero-cart')
+  @include('partials.page-header')
 
   <div class="container py-10">
     @php

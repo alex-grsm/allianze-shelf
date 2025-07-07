@@ -1,6 +1,6 @@
 <?php
 
-namespace App\View\Composers\Woocommerce;
+namespace App\View\Composers\SingleProduct;
 
 use Roots\Acorn\View\Composer;
 use WC_Product;
@@ -9,7 +9,7 @@ use WC_Product_Variation;
 class ProductSummary extends Composer
 {
     protected static $views = [
-        'partials.woocommerce.product-summary',
+        'partials.single-product.product-summary',
     ];
 
     public function with()

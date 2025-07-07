@@ -9,22 +9,24 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
   </head>
 
-  <body @php(body_class())>
+  <body @php(body_class('min-h-screen'))>
     @php(wp_body_open())
 
-    <div id="app">
+    <div id="app" class="min-h-screen flex flex-col">
 
       @include('sections.header')
 
-      <main id="main" class="main">
-        @yield('content')
-      </main>
+      <div class="flex-grow">
+        <main id="main" class="main">
+          @yield('content')
+        </main>
 
-      @hasSection('sidebar')
-        <aside class="sidebar">
-          @yield('sidebar')
-        </aside>
-      @endif
+        @hasSection('sidebar')
+          <aside class="sidebar">
+            @yield('sidebar')
+          </aside>
+        @endif
+      </div>
 
       @include('sections.footer')
     </div>

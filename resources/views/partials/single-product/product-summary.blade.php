@@ -15,7 +15,7 @@
 
                       <div class="w-full">
                         {{-- Галерея продукта --}}
-                        @include('partials.woocommerce.product-gallery', ['productSummary' => $productSummary])
+                        @include('partials.single-product.product-gallery', ['productSummary' => $productSummary])
                       </div>
 
                     </div>
@@ -27,11 +27,13 @@
 
                 <!-- Мета информация -->
                 <div class="flex mb-7">
-                    <!-- Origin OE -->
+                    {{-- Блок с флагом страны --}}
                     <div class="flex items-start flex-col gap-2 pr-8">
                         <span class="text-blue-600 text-xs font-bold">Origin OE</span>
                         <span class="rounded-full overflow-hidden flex">
-                            <img src="{{ flag_url('DE' ?? '') }}" alt="Flag" class="size-6.5 object-cover">
+                            <img src="{{ $productAcfFields['country_flag_url'] }}"
+                                alt="{{ $productAcfFields['country_code'] }}"
+                                class="size-6.5 object-cover">
                         </span>
                     </div>
 
@@ -113,10 +115,13 @@
                                     @endforeach
                                 </div>
 
-                                <div class="mb-8">
-                                    <div class="text-xs mb-1 font-bold">Rights available until</div>
-                                    <div>12/2026</div>
-                                </div>
+                                {{-- Блок с датой действия прав --}}
+                                @if($productAcfFields['rights_until_formatted'])
+                                    <div class="mb-8">
+                                        <div class="text-xs mb-1 font-bold">Rights available until</div>
+                                        <div>{{ $productAcfFields['rights_until_formatted'] }}</div>
+                                    </div>
+                                @endif
 
                                 <div class="flex items-center gap-4">
                                   <button
@@ -131,6 +136,13 @@
                                           Loading...
                                       </span>
                                   </button>
+                                  <a href="{{ get_permalink(get_page_by_path('contact')) }}"
+                                      target="_blank"
+                                      class="!no-underline flex-1 bg-blue-600 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none">
+                                      <span class="flex items-center justify-center gap-2">
+                                          Submit cost request
+                                      </span>
+                                  </a>
 
                                   <button @click="toggleWishlist()"
                                           x-bind:class="isInWishlist ? 'border-red-300 bg-red-50' : 'border-gray-300'"

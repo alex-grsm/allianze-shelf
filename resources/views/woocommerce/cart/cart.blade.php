@@ -9,8 +9,6 @@
   defined('ABSPATH') || exit;
 @endphp
 
-@include('sections.hero-cart')
-
 <div class="container">
   @php do_action('woocommerce_before_cart'); @endphp
 

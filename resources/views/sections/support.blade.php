@@ -13,10 +13,10 @@
 
                 <!-- Кнопка -->
                 <div class="flex-shrink-0">
-                    <button
-                        class="bg-white text-blue-600 font-bold px-8 py-4 rounded-full hover:bg-gray-50 transition-colors duration-200">
+                    <a href="{{ get_permalink(get_page_by_path('contact')) }}"
+                        class="!no-underline bg-white text-blue-600 font-bold px-8 py-4 rounded-full hover:bg-gray-50 transition-colors duration-200">
                         Contact Us
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

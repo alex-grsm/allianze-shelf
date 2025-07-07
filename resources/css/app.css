@@ -3,6 +3,7 @@
 /* @import '@fortawesome/fontawesome-free/css/all.css'; */
 @import './styles/utilities.css';
 @import './components/header.css';
+@import './components/contact-form.css';
 @source "../views/";
 @source "../../app/";
 
@@ -77,3 +78,4 @@
     @apply opacity-100 translate-x-0 blur-none;
   }
 }
+

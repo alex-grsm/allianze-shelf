@@ -8,5 +8,10 @@ The Template for displaying all single products
 @extends('layouts.app')
 
 @section('content')
-  @include('partials.woocommerce.product-summary')
+    @include('partials.single-product.product-summary')
+    @include('partials.single-product.asset-overview')
+    @include('partials.single-product.product-channels')
+    @include('partials.single-product.buyout-details')
+    @include('partials.single-product.product-links')
+    @include('partials.single-product.attachments')
 @endsection
