@@ -81,6 +81,7 @@
             </h2>
         </div>
 
+
         {{-- <div class="flex  gap-6">
             @foreach ($campaigns as $campaign)
                 @include('components.card', $campaign)

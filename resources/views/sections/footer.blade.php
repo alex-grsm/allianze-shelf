@@ -16,7 +16,7 @@
                     <ul class="flex flex-wrap gap-x-1 gap-y-2 items-center">
                         <li><a href="#" class="!no-underline text-white/75 text-sm hover:text-white transition-colors">Faq</a></li>
                         <li class="text-white/75 text-sm mx-3">•</li>
-                        <li><a href="#" class="!no-underline text-white/75 text-sm hover:text-white transition-colors">Contact help</a></li>
+                        <li><a href="{{ get_permalink(get_page_by_path('contact')) }}" class="!no-underline text-white/75 text-sm hover:text-white transition-colors">Contact help</a></li>
                         <li class="text-white/75 text-sm mx-3">•</li>
                         <li><a href="#" class="!no-underline text-white/75 text-sm hover:text-white transition-colors">Customer Support</a></li>
                     </ul>

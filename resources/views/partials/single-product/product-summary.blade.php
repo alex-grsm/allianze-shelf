@@ -2,6 +2,7 @@
 
 {{-- @dump($productSummary ?? 'productSummary не определена') --}}
 
+
 {{-- --------------------------------------------------------------- --}}
 <section class="py-20">
     <div class="container-fluid">

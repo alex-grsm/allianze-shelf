@@ -10,20 +10,24 @@ class ProductSummary extends Composer
 {
     protected static $views = [
         'partials.single-product.product-summary',
+        'partials.product-card',
     ];
 
     public function with()
     {
-        if (!function_exists('is_product') || !is_product()) {
+        // Проверяем WooCommerce
+        if (!function_exists('wc_get_product')) {
             return ['productSummary' => null];
         }
 
         global $product;
 
+        // Если это не страница товара, пытаемся получить товар из текущего поста в цикле
         if (!$product instanceof WC_Product) {
             $product = wc_get_product(get_the_ID());
         }
 
+        // Если всё ещё нет товара, возвращаем null
         if (!$product instanceof WC_Product) {
             return ['productSummary' => null];
         }
@@ -46,6 +50,7 @@ class ProductSummary extends Composer
                 'checkout_url' => wc_get_checkout_url(),
                 'image' => $this->getProductImage($product),
                 'gallery' => $this->getProductGallery($product),
+                'permalink' => $product->get_permalink(), // Добавляем ссылку на товар
             ]
         ];
     }

@@ -53,7 +53,7 @@
                   <!-- Product Image -->
                   <div class="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
                     @php
-                      $thumbnail = apply_filters('woocommerce_cart_item_thumbnail', $_product->get_image('thumbnail', ['class' => 'w-full h-full object-cover']), $cart_item, $cart_item_key);
+                      $thumbnail = apply_filters('woocommerce_cart_item_thumbnail', $_product->get_image('thumbnail', ['class' => 'w-full !h-full object-cover']), $cart_item, $cart_item_key);
                     @endphp
 
                     @if(!$product_permalink)
