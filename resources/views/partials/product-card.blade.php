@@ -50,8 +50,8 @@
                 </div>
             @endif
 
-            {{-- Label --}}
-            @if($productAcfFields['label'])
+            {{-- Label (только если поле существует и не пустое) --}}
+            @if(!empty($productAcfFields['label']))
                 @php
                     $labelColor = $productAcfFields['label'] === 'easy_adaptable' ? 'bg-[#7700ff]' : 'bg-[#f62459]';
                 @endphp
@@ -60,22 +60,40 @@
                 </span>
             @endif
 
-            {{-- Флаг страны --}}
-            <span class="absolute bottom-3 left-3 rounded-full overflow-hidden">
-                <img src="{{ $productAcfFields['country_flag_url'] }}" alt="{{ $productAcfFields['country_code'] }}"
-                    class="size-6.5 object-cover">
-            </span>
+            {{-- Флаг страны (только если данные доступны) --}}
+            @if(!empty($productAcfFields['country_flag_url']) && !empty($productAcfFields['country_code']))
+                <span class="absolute bottom-3 left-3 rounded-full overflow-hidden">
+                    <img src="{{ $productAcfFields['country_flag_url'] }}" alt="{{ $productAcfFields['country_code'] }}"
+                        class="size-6.5 object-cover">
+                </span>
+            @endif
         </div>
 
         <div class="pt-2.5 pb-4 px-3 flex flex-col flex-1">
             <h3 class="text-xl font-bold mb-1.5">{{ $productSummary['title'] }}</h3>
 
             <div class="concept-meta space-y-1.5 mb-3.5 text-sm">
-                <p><span class="font-bold">Target:</span> {{ $productAcfFields['target'] }}</p>
-                <p>
-                    <span class="font-bold">Year:</span> {{ $productAcfFields['year'] }} |
-                    <span class="font-bold">Buyout:</span> {{ $productAcfFields['buyout'] }}
-                </p>
+                {{-- Target (только если поле доступно) --}}
+                @if(!empty($productAcfFields['target']))
+                    <p><span class="font-bold">Target:</span> {{ $productAcfFields['target'] }}</p>
+                @endif
+
+                {{-- Year и Buyout (только если поля доступны) --}}
+                @if(!empty($productAcfFields['year']) || !empty($productAcfFields['buyout']))
+                    <p>
+                        @if(!empty($productAcfFields['year']))
+                            <span class="font-bold">Year:</span> {{ $productAcfFields['year'] }}
+                        @endif
+
+                        @if(!empty($productAcfFields['year']) && !empty($productAcfFields['buyout']))
+                            |
+                        @endif
+
+                        @if(!empty($productAcfFields['buyout']))
+                            <span class="font-bold">Buyout:</span> {{ $productAcfFields['buyout'] }}
+                        @endif
+                    </p>
+                @endif
             </div>
 
             <div class="mt-auto flex justify-between items-center">
@@ -95,10 +113,6 @@
     </a>
 </div>
 
-<br>
-<br>
-<br>
-<br>
 
     {{-- <div class="mb-4">
       <h4 class="font-semibold text-blue-600">ProductSummary данные:</h4>

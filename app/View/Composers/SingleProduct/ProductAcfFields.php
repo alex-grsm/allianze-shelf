@@ -5,11 +5,60 @@ namespace App\View\Composers\SingleProduct;
 use Roots\Acorn\View\Composer;
 use WC_Product;
 
+// Импортируем табы
+use App\View\Composers\SingleProduct\Tabs\CompaniesInfoTab;
+use App\View\Composers\SingleProduct\Tabs\BuyoutDetailsTab;
+use App\View\Composers\SingleProduct\Tabs\AssetOverviewTab;
+use App\View\Composers\SingleProduct\Tabs\ProductChannelsTab;
+use App\View\Composers\SingleProduct\Tabs\ProductLinksTab;
+use App\View\Composers\SingleProduct\Tabs\AttachmentsTab;
+use App\View\Composers\SingleProduct\Tabs\SocialMediaAssetsInfoTab;
+
 class ProductAcfFields extends Composer
 {
     protected static $views = [
         'partials.single-product.product-summary',
         'partials.product-card',
+        'partials.single-product.buyout-details',
+        'partials.single-product.asset-overview',
+        'partials.single-product.product-channels',
+        'partials.single-product.product-links',
+        'partials.single-product.attachments',
+    ];
+
+    /**
+     * Все доступные табы
+     */
+    private static $allTabs = [
+        CompaniesInfoTab::class,
+        SocialMediaAssetsInfoTab::class,
+        BuyoutDetailsTab::class,
+        AssetOverviewTab::class,
+        ProductChannelsTab::class,
+        ProductLinksTab::class,
+        AttachmentsTab::class
+    ];
+
+    /**
+     * Порядок табов для типа Companies
+     */
+    private static $companiesTabsOrder = [
+        CompaniesInfoTab::class,
+        BuyoutDetailsTab::class,
+        AssetOverviewTab::class,
+        ProductChannelsTab::class,
+        ProductLinksTab::class,
+        AttachmentsTab::class
+    ];
+
+    /**
+     * Порядок табов для типа Social Media Assets
+     */
+    private static $socialMediaTabsOrder = [
+        SocialMediaAssetsInfoTab::class,
+        BuyoutDetailsTab::class,
+        ProductLinksTab::class,
+        AttachmentsTab::class,
     ];
 
     /**
@@ -20,6 +69,9 @@ class ProductAcfFields extends Composer
         // Register ACF fields
         static::registerAcfFields();
 
+        // Регистрируем хуки для всех табов
+        static::registerTabHooks();
+
         // Composer will be registered automatically through Sage
     }
 
@@ -27,7 +79,7 @@ class ProductAcfFields extends Composer
     {
         // Проверяем WooCommerce
         if (!function_exists('wc_get_product')) {
-            return ['productAcfFields' => null];
+            return $this->getEmptyData();
         }
 
         global $product;
@@ -39,21 +91,114 @@ class ProductAcfFields extends Composer
 
         // Если всё ещё нет товара, возвращаем null
         if (!$product instanceof WC_Product) {
-            return ['productAcfFields' => null];
+            return $this->getEmptyData();
         }
 
-        return [
+        // Получаем тип продукта
+        $productType = $this->getProductType($product);
+
+        // Определяем порядок табов в зависимости от типа продукта
+        $tabsOrder = $this->getTabsOrder($productType);
+
+        // Собираем данные от всех табов
+        $data = [
             'productAcfFields' => [
-                'country_code' => $this->getCountryCode($product),
-                'country_flag_url' => $this->getCountryFlagUrl($product),
-                'rights_until_date' => $this->getRightsUntilDate($product),
-                'rights_until_formatted' => $this->getRightsUntilFormatted($product),
-                'target' => $this->getTarget($product),
-                'year' => $this->getYear($product),
-                'buyout' => $this->getBuyout($product),
-                'label' => $this->getLabel($product),
+                'product_type' => $productType,
+                'tabs_order' => $this->getTabsInfo($tabsOrder, $product),
             ]
         ];
+
+        // Получаем данные от каждого таба в правильном порядке
+        foreach ($tabsOrder as $tabClass) {
+            $tabData = $tabClass::getDataForProduct($product);
+            if ($tabData) {
+                $data['productAcfFields'] = array_merge($data['productAcfFields'], $tabData);
+            }
+
+            // Получаем данные для отдельных переменных (для совместимости)
+            $templateData = $tabClass::getTemplateData($product);
+            if ($templateData) {
+                $data = array_merge($data, $templateData);
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Получить порядок табов в зависимости от типа продукта
+     */
+    private function getTabsOrder(string $productType): array
+    {
+        return match ($productType) {
+            'social_media_assets' => self::$socialMediaTabsOrder,
+            'companies' => self::$companiesTabsOrder,
+            default => self::$companiesTabsOrder,
+        };
+    }
+
+    /**
+     * Получить информацию о табах для фронтенда
+     */
+    private function getTabsInfo(array $tabsOrder, WC_Product $product): array
+    {
+        $tabsInfo = [];
+        $activeTabSet = false;
+
+        foreach ($tabsOrder as $index => $tabClass) {
+            // Определяем является ли таб видимым для текущего типа продукта
+            $isVisible = $this->isTabVisible($tabClass, $product);
+
+            $tabInfo = [
+                'class' => $tabClass,
+                'name' => $this->getTabName($tabClass),
+                'is_visible' => $isVisible,
+                'is_active' => false,
+                'order' => $index,
+            ];
+
+            // Делаем первый видимый таб активным
+            if ($isVisible && !$activeTabSet) {
+                $tabInfo['is_active'] = true;
+                $activeTabSet = true;
+            }
+
+            $tabsInfo[] = $tabInfo;
+        }
+
+        return $tabsInfo;
+    }
+
+    /**
+     * Проверить, виден ли таб для данного типа продукта
+     */
+    private function isTabVisible(string $tabClass, WC_Product $product): bool
+    {
+        $productType = $this->getProductType($product);
+
+        // Проверяем видимость табов в зависимости от типа продукта
+        return match ($tabClass) {
+            CompaniesInfoTab::class => $productType === 'companies',
+            SocialMediaAssetsInfoTab::class => $productType === 'social_media_assets',
+            default => true, // Остальные табы видны для всех типов
+        };
+    }
+
+    /**
+     * Получить название таба
+     */
+    private function getTabName(string $tabClass): string
+    {
+        return match ($tabClass) {
+            CompaniesInfoTab::class => 'companies_info',
+            SocialMediaAssetsInfoTab::class => 'social_media_assets_info',
+            BuyoutDetailsTab::class => 'buyout_details',
+            AssetOverviewTab::class => 'asset_overview',
+            ProductChannelsTab::class => 'product_channels',
+            ProductLinksTab::class => 'product_links',
+            AttachmentsTab::class => 'attachments',
+            default => 'unknown',
+        };
     }
 
     /**
@@ -65,85 +210,45 @@ class ProductAcfFields extends Composer
             return;
         }
 
-        add_action('acf/init', function() {
+        add_action('acf/init', function () {
+            // Базовые поля
+            $fields = [
+                // Улучшенное поле выбора типа продукта
+                [
+                    'key' => 'field_product_type',
+                    'label' => 'Product Type',
+                    'name' => 'product_type',
+                    'type' => 'button_group',
+                    'choices' => [
+                        'companies' => 'Companies',
+                        'social_media_assets' => 'Social Media Assets',
+                    ],
+                    'default_value' => 'companies',
+                    'allow_null' => 0,
+                    'layout' => 'horizontal',
+                    'return_format' => 'value',
+                    'instructions' => 'Choose the type of product. This will determine which fields and sections are available for this product.',
+                    'required' => 1,
+                    'wrapper' => [
+                        'width' => '',
+                        'class' => 'product-type-field',
+                        'id' => '',
+                    ],
+                ],
+            ];
+
+            // Добавляем поля от каждого таба в правильном порядке
+            foreach (self::$allTabs as $tabClass) {
+                $tabFields = $tabClass::getFields();
+                if ($tabFields) {
+                    $fields = array_merge($fields, $tabFields);
+                }
+            }
+
             acf_add_local_field_group([
                 'key' => 'group_product_additional_info',
                 'title' => 'Product Additional Information',
-                'fields' => [
-                    [
-                        'key' => 'field_product_country_code',
-                        'label' => 'Country of Origin',
-                        'name' => 'product_country_code',
-                        'type' => 'select',
-                        'choices' => get_country_choices(),
-                        'default_value' => '',
-                        'allow_null' => 1,
-                        'multiple' => 0,
-                        'ui' => 1,
-                        'return_format' => 'value',
-                        'ajax' => 0,
-                        'placeholder' => 'Select country...',
-                        'instructions' => 'Select the country where the product is manufactured',
-                    ],
-                    [
-                        'key' => 'field_rights_until_date',
-                        'label' => 'Rights Valid Until',
-                        'name' => 'rights_until_date',
-                        'type' => 'date_picker',
-                        'display_format' => 'm/Y',
-                        'return_format' => 'Y-m-d',
-                        'first_day' => 1,
-                        'instructions' => 'Select the expiration date for product rights',
-                    ],
-                    [
-                        'key' => 'field_product_target',
-                        'label' => 'Target',
-                        'name' => 'product_target',
-                        'type' => 'text',
-                        'default_value' => '',
-                        'maxlength' => '',
-                        'placeholder' => 'Enter target information...',
-                        'instructions' => 'Specify the target information for this product',
-                    ],
-                    [
-                        'key' => 'field_product_year',
-                        'label' => 'Year',
-                        'name' => 'product_year',
-                        'type' => 'text',
-                        'default_value' => '',
-                        'maxlength' => 4,
-                        'placeholder' => 'YYYY',
-                        'instructions' => 'Enter the year for this product',
-                    ],
-                    [
-                        'key' => 'field_product_buyout',
-                        'label' => 'Buyout',
-                        'name' => 'product_buyout',
-                        'type' => 'text',
-                        'default_value' => '',
-                        'maxlength' => '',
-                        'placeholder' => 'Enter buyout information...',
-                        'instructions' => 'Specify the buyout information for this product',
-                    ],
-                    [
-                        'key' => 'field_product_label',
-                        'label' => 'Product Label',
-                        'name' => 'product_label',
-                        'type' => 'select',
-                        'choices' => [
-                            'featured' => 'Featured',
-                            'easy_adaptable' => 'Easy adaptable',
-                        ],
-                        'default_value' => '',
-                        'allow_null' => 1,
-                        'multiple' => 0,
-                        'ui' => 1,
-                        'return_format' => 'value',
-                        'ajax' => 0,
-                        'placeholder' => 'Select label...',
-                        'instructions' => 'Choose a label for this product',
-                    ],
-                ],
+                'fields' => $fields,
                 'location' => [
                     [
                         [
@@ -158,89 +263,47 @@ class ProductAcfFields extends Composer
                 'style' => 'default',
                 'label_placement' => 'top',
                 'instruction_placement' => 'label',
+                'active' => true,
+                'description' => 'Configure additional product information based on product type',
             ]);
         });
     }
 
     /**
-     * Get country code
+     * Регистрируем хуки для всех табов
      */
-    private function getCountryCode(WC_Product $product): string
+    private static function registerTabHooks(): void
     {
-        return get_field('product_country_code', $product->get_id()) ?: '';
+        foreach (self::$allTabs as $tabClass) {
+            if (method_exists($tabClass, 'registerHooks')) {
+                $tabClass::registerHooks();
+            }
+        }
     }
 
     /**
-     * Get country flag URL
+     * Get product type
      */
-    private function getCountryFlagUrl(WC_Product $product): string
+    private function getProductType(WC_Product $product): string
     {
-        $country_code = $this->getCountryCode($product);
-        return flag_url($country_code);
+        return get_field('product_type', $product->get_id()) ?: 'companies';
     }
 
     /**
-     * Get rights expiration date
+     * Return empty data structure
      */
-    private function getRightsUntilDate(WC_Product $product): ?string
+    private function getEmptyData(): array
     {
-        return get_field('rights_until_date', $product->get_id());
-    }
+        $emptyData = ['productAcfFields' => null];
 
-    /**
-     * Get formatted rights expiration date
-     */
-    private function getRightsUntilFormatted(WC_Product $product): string
-    {
-        $date = $this->getRightsUntilDate($product);
-
-        if (!$date) {
-            return '';
+        // Добавляем пустые данные для каждого таба
+        foreach (self::$allTabs as $tabClass) {
+            $tabEmptyData = $tabClass::getEmptyTemplateData();
+            if ($tabEmptyData) {
+                $emptyData = array_merge($emptyData, $tabEmptyData);
+            }
         }
 
-        // If it's a DateTime object
-        if ($date instanceof \DateTime) {
-            return $date->format('m/Y');
-        }
-
-        // If it's a string
-        if (is_string($date)) {
-            $timestamp = strtotime($date);
-            return $timestamp ? date('m/Y', $timestamp) : '';
-        }
-
-        return '';
-    }
-
-    /**
-     * Get target
-     */
-    private function getTarget(WC_Product $product): string
-    {
-        return get_field('product_target', $product->get_id()) ?: '';
-    }
-
-    /**
-     * Get year
-     */
-    private function getYear(WC_Product $product): string
-    {
-        return get_field('product_year', $product->get_id()) ?: '';
-    }
-
-    /**
-     * Get buyout
-     */
-    private function getBuyout(WC_Product $product): string
-    {
-        return get_field('product_buyout', $product->get_id()) ?: '';
-    }
-
-    /**
-     * Get product label
-     */
-    private function getLabel(WC_Product $product): string
-    {
-        return get_field('product_label', $product->get_id()) ?: '';
+        return $emptyData;
     }
 }

@@ -28,18 +28,20 @@
 
                 <!-- Мета информация -->
                 <div class="flex mb-7">
-                    {{-- Блок с флагом страны --}}
-                    <div class="flex items-start flex-col gap-2 pr-8">
-                        <span class="text-blue-600 text-xs font-bold">Origin OE</span>
-                        <span class="rounded-full overflow-hidden flex">
-                            <img src="{{ $productAcfFields['country_flag_url'] }}"
-                                alt="{{ $productAcfFields['country_code'] }}"
-                                class="size-6.5 object-cover">
-                        </span>
-                    </div>
+                    {{-- Блок с флагом страны (только если данные доступны) --}}
+                    @if(!empty($productAcfFields['country_flag_url']) && !empty($productAcfFields['country_code']))
+                        <div class="flex items-start flex-col gap-2 pr-8">
+                            <span class="text-blue-600 text-xs font-bold">Origin OE</span>
+                            <span class="rounded-full overflow-hidden flex">
+                                <img src="{{ $productAcfFields['country_flag_url'] }}"
+                                    alt="{{ $productAcfFields['country_code'] }}"
+                                    class="size-6.5 object-cover">
+                            </span>
+                        </div>
 
-                    <!-- Разделитель -->
-                    <div class="h-12 w-px bg-[#d3d3d3]"></div>
+                        <!-- Разделитель -->
+                        <div class="h-12 w-px bg-[#d3d3d3]"></div>
+                    @endif
 
                     <!-- Content type -->
                     <div class="flex items-start flex-col gap-2 px-8">
@@ -116,8 +118,8 @@
                                     @endforeach
                                 </div>
 
-                                {{-- Блок с датой действия прав --}}
-                                @if($productAcfFields['rights_until_formatted'])
+                                {{-- Блок с датой действия прав (только если поле доступно) --}}
+                                @if(!empty($productAcfFields['rights_until_formatted']))
                                     <div class="mb-8">
                                         <div class="text-xs mb-1 font-bold">Rights available until</div>
                                         <div>{{ $productAcfFields['rights_until_formatted'] }}</div>

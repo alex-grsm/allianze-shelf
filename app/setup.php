@@ -9,11 +9,6 @@ namespace App;
 use Illuminate\Support\Facades\Vite;
 use App\WooCommerce\CartAjax;
 use App\View\Composers\SingleProduct\ProductAcfFields;
-use App\View\Composers\SingleProduct\ProductChannels;
-use App\View\Composers\SingleProduct\BuyoutDetails;
-use App\View\Composers\SingleProduct\ProductLinks;
-use App\View\Composers\SingleProduct\AssetOverview;
-use App\View\Composers\SingleProduct\Attachments;
 
 /**
  * Inject styles into the block editor.
@@ -186,8 +181,3 @@ CartAjax::register();
  * Single Product ACF fields and functionality.
  */
 ProductAcfFields::register();
-ProductChannels::register();
-BuyoutDetails::register();
-ProductLinks::register();
-AssetOverview::register();
-Attachments::register();
