@@ -19,7 +19,7 @@ class ProductLinksTab extends BaseTab
                 'type' => 'tab',
                 'placement' => 'top',
                 'endpoint' => 0,
-                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
+                'conditional_logic' => create_acf_conditional_logic(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
             ],
             [
                 'key' => 'field_links_enabled',
@@ -33,7 +33,7 @@ class ProductLinksTab extends BaseTab
                 'ui' => 1,
                 'ui_on_text' => 'Yes',
                 'ui_off_text' => 'No',
-                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
+                'conditional_logic' => create_acf_conditional_logic(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
             ],
             [
                 'key' => 'field_links_description',
@@ -44,7 +44,7 @@ class ProductLinksTab extends BaseTab
                 'required' => 0,
                 'placeholder' => 'The following links give you access to...',
                 'maxlength' => 200,
-                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter', 'landing_page'], 'field_links_enabled', '1'),
+                'conditional_logic' => create_acf_conditional_logic(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
             ],
             [
                 'key' => 'field_product_links',
@@ -58,7 +58,7 @@ class ProductLinksTab extends BaseTab
                 'max' => 12,
                 'layout' => 'block',
                 'button_label' => 'Add Link',
-                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter', 'landing_page'], 'field_links_enabled', '1'),
+                'conditional_logic' => create_acf_conditional_logic(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
                 'sub_fields' => [
                     [
                         'key' => 'field_link_title',
@@ -145,7 +145,6 @@ class ProductLinksTab extends BaseTab
         }
 
         return [
-            // Product Links
             'links_enabled' => self::isLinksEnabled($product),
             'links_description' => self::getLinksDescription($product),
             'links' => self::getFormattedLinks($product),
@@ -159,8 +158,24 @@ class ProductLinksTab extends BaseTab
      */
     public static function getTemplateData(WC_Product $product): ?array
     {
+        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page']) || !self::isLinksEnabled($product)) {
+            return ['productLinks' => null];
+        }
+
+        $formatted_links = self::getFormattedLinks($product);
+
+        if (empty($formatted_links)) {
+            return ['productLinks' => null];
+        }
+
         return [
-            'productLinks' => self::getLinksForTemplate($product),
+            'productLinks' => [
+                'description' => self::getLinksDescription($product),
+                'links' => $formatted_links,
+                'total_count' => count($formatted_links),
+                'has_links' => !empty($formatted_links),
+                'visible_limit' => 6,
+            ]
         ];
     }
 
@@ -169,9 +184,7 @@ class ProductLinksTab extends BaseTab
      */
     public static function getEmptyTemplateData(): ?array
     {
-        return [
-            'productLinks' => null,
-        ];
+        return ['productLinks' => null];
     }
 
     /**
@@ -186,7 +199,7 @@ class ProductLinksTab extends BaseTab
     // ===== PRIVATE METHODS =====
 
     /**
-     * Check if links are enabled for product
+     * Проверить, включены ли links для продукта
      */
     private static function isLinksEnabled(WC_Product $product): bool
     {
@@ -194,7 +207,7 @@ class ProductLinksTab extends BaseTab
     }
 
     /**
-     * Get links description
+     * Получить описание links
      */
     private static function getLinksDescription(WC_Product $product): string
     {
@@ -202,7 +215,7 @@ class ProductLinksTab extends BaseTab
     }
 
     /**
-     * Get product links
+     * Получить links продукта
      */
     private static function getLinks(WC_Product $product): array
     {
@@ -210,15 +223,27 @@ class ProductLinksTab extends BaseTab
     }
 
     /**
-     * Get formatted links for view
+     * Получить только активные links
+     */
+    private static function getActiveLinks(WC_Product $product): array
+    {
+        $links = self::getLinks($product);
+
+        return array_filter($links, function($link) {
+            return !empty($link['link_enabled']) && !empty($link['link_title']);
+        });
+    }
+
+    /**
+     * Получить отформатированные links для отображения
      */
     private static function getFormattedLinks(WC_Product $product): array
     {
-        $links = self::getLinks($product);
+        $links = self::getActiveLinks($product);
         $formatted_links = [];
 
         foreach ($links as $link) {
-            if (!empty($link['link_title']) && !empty($link['link_enabled'])) {
+            if (!empty($link['link_title'])) {
                 $formatted_links[] = [
                     'title' => $link['link_title'],
                     'description' => $link['link_description'] ?: '',
@@ -236,7 +261,7 @@ class ProductLinksTab extends BaseTab
     }
 
     /**
-     * Get links statistics
+     * Получить статистику links
      */
     private static function getLinksStats(WC_Product $product): array
     {
@@ -251,19 +276,7 @@ class ProductLinksTab extends BaseTab
     }
 
     /**
-     * Get only active links
-     */
-    private static function getActiveLinks(WC_Product $product): array
-    {
-        $links = self::getLinks($product);
-
-        return array_filter($links, function($link) {
-            return !empty($link['link_enabled']) && !empty($link['link_title']);
-        });
-    }
-
-    /**
-     * Check if product has links content
+     * Проверить, есть ли контент для links
      */
     private static function hasLinksContent(WC_Product $product): bool
     {
@@ -275,35 +288,10 @@ class ProductLinksTab extends BaseTab
         return count($active_links) > 0;
     }
 
-    /**
-     * Get links data formatted for template (compatibility with existing product-links.blade.php)
-     */
-    private static function getLinksForTemplate(WC_Product $product): ?array
-    {
-        // Проверяем, включены ли ссылки и тип продукта
-        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page']) || !self::isLinksEnabled($product)) {
-            return null;
-        }
-
-        $formatted_links = self::getFormattedLinks($product);
-
-        if (empty($formatted_links)) {
-            return null;
-        }
-
-        return [
-            'description' => self::getLinksDescription($product),
-            'links' => $formatted_links,
-            'total_count' => count($formatted_links),
-            'has_links' => !empty($formatted_links),
-            'visible_limit' => 6,
-        ];
-    }
-
     // ===== STATIC METHODS FOR HOOKS =====
 
     /**
-     * Set default links when creating product
+     * Установить дефолтные links при создании продукта
      */
     public static function setDefaultLinks($post_id)
     {
@@ -311,7 +299,7 @@ class ProductLinksTab extends BaseTab
             return;
         }
 
-        // Only for new products
+        // Только для новых продуктов
         if (get_post_status($post_id) === 'auto-draft' && !get_field('product_links', $post_id)) {
             $default_links = [
                 [
@@ -344,7 +332,7 @@ class ProductLinksTab extends BaseTab
     }
 
     /**
-     * Ensure published product has links
+     * Убедиться, что опубликованный продукт имеет links
      */
     public static function ensureLinksOnPublish($post_id)
     {
@@ -354,7 +342,7 @@ class ProductLinksTab extends BaseTab
 
         $links = get_field('product_links', $post_id);
 
-        // If no links, add basic ones
+        // Если нет links, добавляем базовые
         if (empty($links)) {
             $basic_links = [
                 [
@@ -368,58 +356,5 @@ class ProductLinksTab extends BaseTab
 
             update_field('product_links', $basic_links, $post_id);
         }
-    }
-
-    // ===== STATIC HELPER METHODS FOR TEMPLATES =====
-
-    /**
-     * Get links for product (static method for template use)
-     */
-    public static function getLinksForProduct($product_id): array
-    {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return [];
-        }
-
-        return self::getLinks($product);
-    }
-
-    /**
-     * Get active links for product (static method for template use)
-     */
-    public static function getActiveLinksForProduct($product_id): array
-    {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return [];
-        }
-
-        return self::getActiveLinks($product);
-    }
-
-    /**
-     * Get stats for product (static method for template use)
-     */
-    public static function getStatsForProduct($product_id): array
-    {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return [
-                'total' => 0,
-                'active' => 0,
-                'has_links' => false,
-            ];
-        }
-
-        return self::getLinksStats($product);
-    }
-
-    /**
-     * Check if links are enabled for product (static method for template use)
-     */
-    public static function isLinksEnabledForProduct($product_id): bool
-    {
-        return (bool) get_field('links_enabled', $product_id);
     }
 }

@@ -19,7 +19,7 @@ class AttachmentsTab extends BaseTab
                 'type' => 'tab',
                 'placement' => 'top',
                 'endpoint' => 0,
-                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
+                'conditional_logic' => create_acf_conditional_logic(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
             ],
             [
                 'key' => 'field_attachments_enabled',
@@ -33,7 +33,7 @@ class AttachmentsTab extends BaseTab
                 'ui' => 1,
                 'ui_on_text' => 'Yes',
                 'ui_off_text' => 'No',
-                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
+                'conditional_logic' => create_acf_conditional_logic(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
             ],
             [
                 'key' => 'field_attachments_description',
@@ -45,7 +45,7 @@ class AttachmentsTab extends BaseTab
                 'rows' => 3,
                 'placeholder' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
                 'maxlength' => 400,
-                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter', 'landing_page'], 'field_attachments_enabled', '1'),
+                'conditional_logic' => create_acf_conditional_logic(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
             ],
             [
                 'key' => 'field_product_attachments',
@@ -59,7 +59,7 @@ class AttachmentsTab extends BaseTab
                 'max' => 10,
                 'layout' => 'block',
                 'button_label' => 'Add Attachment',
-                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter', 'landing_page'], 'field_attachments_enabled', '1'),
+                'conditional_logic' => create_acf_conditional_logic(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
                 'sub_fields' => [
                     [
                         'key' => 'field_attachment_label',
@@ -111,7 +111,6 @@ class AttachmentsTab extends BaseTab
         }
 
         return [
-            // Attachments
             'attachments_enabled' => self::isAttachmentsEnabled($product),
             'attachments_description' => self::getAttachmentsDescription($product),
             'attachments' => self::getFormattedAttachments($product),
@@ -125,8 +124,23 @@ class AttachmentsTab extends BaseTab
      */
     public static function getTemplateData(WC_Product $product): ?array
     {
+        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page']) || !self::isAttachmentsEnabled($product)) {
+            return ['attachments' => null];
+        }
+
+        $formatted_attachments = self::getFormattedAttachments($product);
+
+        if (empty($formatted_attachments)) {
+            return ['attachments' => null];
+        }
+
         return [
-            'attachments' => self::getAttachmentsForTemplate($product),
+            'attachments' => [
+                'description' => self::getAttachmentsDescription($product),
+                'attachments' => $formatted_attachments,
+                'total_count' => count($formatted_attachments),
+                'has_attachments' => !empty($formatted_attachments),
+            ]
         ];
     }
 
@@ -135,9 +149,7 @@ class AttachmentsTab extends BaseTab
      */
     public static function getEmptyTemplateData(): ?array
     {
-        return [
-            'attachments' => null,
-        ];
+        return ['attachments' => null];
     }
 
     /**
@@ -152,7 +164,7 @@ class AttachmentsTab extends BaseTab
     // ===== PRIVATE METHODS =====
 
     /**
-     * Check if attachments are enabled for product
+     * Проверить, включены ли attachments для продукта
      */
     private static function isAttachmentsEnabled(WC_Product $product): bool
     {
@@ -160,7 +172,7 @@ class AttachmentsTab extends BaseTab
     }
 
     /**
-     * Get attachments description
+     * Получить описание attachments
      */
     private static function getAttachmentsDescription(WC_Product $product): string
     {
@@ -168,7 +180,7 @@ class AttachmentsTab extends BaseTab
     }
 
     /**
-     * Get product attachments
+     * Получить attachments продукта
      */
     private static function getAttachments(WC_Product $product): array
     {
@@ -176,15 +188,27 @@ class AttachmentsTab extends BaseTab
     }
 
     /**
-     * Get formatted attachments for view
+     * Получить только активные attachments с файлами
+     */
+    private static function getActiveAttachments(WC_Product $product): array
+    {
+        $attachments = self::getAttachments($product);
+
+        return array_filter($attachments, function($attachment) {
+            return !empty($attachment['attachment_enabled']) && !empty($attachment['attachment_file']);
+        });
+    }
+
+    /**
+     * Получить отформатированные attachments для отображения
      */
     private static function getFormattedAttachments(WC_Product $product): array
     {
-        $attachments = self::getAttachments($product);
+        $attachments = self::getActiveAttachments($product);
         $formatted_attachments = [];
 
         foreach ($attachments as $attachment) {
-            if (!empty($attachment['attachment_enabled']) && !empty($attachment['attachment_file']) && !empty($attachment['attachment_label'])) {
+            if (!empty($attachment['attachment_label'])) {
                 $formatted_attachments[] = [
                     'label' => $attachment['attachment_label'],
                     'file' => $attachment['attachment_file'],
@@ -199,7 +223,7 @@ class AttachmentsTab extends BaseTab
     }
 
     /**
-     * Get attachments statistics
+     * Получить статистику attachments
      */
     private static function getAttachmentsStats(WC_Product $product): array
     {
@@ -214,19 +238,7 @@ class AttachmentsTab extends BaseTab
     }
 
     /**
-     * Get only active attachments with files
-     */
-    private static function getActiveAttachments(WC_Product $product): array
-    {
-        $attachments = self::getAttachments($product);
-
-        return array_filter($attachments, function($attachment) {
-            return !empty($attachment['attachment_enabled']) && !empty($attachment['attachment_file']);
-        });
-    }
-
-    /**
-     * Check if product has attachments content
+     * Проверить, есть ли контент для attachments
      */
     private static function hasAttachmentsContent(WC_Product $product): bool
     {
@@ -239,31 +251,7 @@ class AttachmentsTab extends BaseTab
     }
 
     /**
-     * Get attachments data formatted for template (compatibility with existing attachments.blade.php)
-     */
-    private static function getAttachmentsForTemplate(WC_Product $product): ?array
-    {
-        // Проверяем, включены ли вложения и тип продукта
-        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page']) || !self::isAttachmentsEnabled($product)) {
-            return null;
-        }
-
-        $formatted_attachments = self::getFormattedAttachments($product);
-
-        if (empty($formatted_attachments)) {
-            return null;
-        }
-
-        return [
-            'description' => self::getAttachmentsDescription($product),
-            'attachments' => $formatted_attachments,
-            'total_count' => count($formatted_attachments),
-            'has_attachments' => !empty($formatted_attachments),
-        ];
-    }
-
-    /**
-     * Format file size in human readable format
+     * Форматировать размер файла в человекочитаемом формате
      */
     private static function formatFileSize($bytes): string
     {
@@ -279,7 +267,7 @@ class AttachmentsTab extends BaseTab
     // ===== STATIC METHODS FOR HOOKS =====
 
     /**
-     * Set default attachments when creating product
+     * Установить дефолтные attachments при создании продукта
      */
     public static function setDefaultAttachments($post_id)
     {
@@ -287,7 +275,7 @@ class AttachmentsTab extends BaseTab
             return;
         }
 
-        // Only for new products
+        // Только для новых продуктов
         if (get_post_status($post_id) === 'auto-draft' && !get_field('product_attachments', $post_id)) {
             $default_attachments = [
                 [
@@ -307,7 +295,7 @@ class AttachmentsTab extends BaseTab
     }
 
     /**
-     * Ensure published product has attachments
+     * Убедиться, что опубликованный продукт имеет attachments
      */
     public static function ensureAttachmentsOnPublish($post_id)
     {
@@ -317,7 +305,7 @@ class AttachmentsTab extends BaseTab
 
         $attachments = get_field('product_attachments', $post_id);
 
-        // If no attachments, add basic ones
+        // Если нет attachments, добавляем базовые
         if (empty($attachments)) {
             $basic_attachments = [
                 [
@@ -328,71 +316,5 @@ class AttachmentsTab extends BaseTab
 
             update_field('product_attachments', $basic_attachments, $post_id);
         }
-    }
-
-    // ===== STATIC HELPER METHODS FOR TEMPLATES =====
-
-    /**
-     * Get attachments for product (static method for template use)
-     */
-    public static function getAttachmentsForProduct($product_id): array
-    {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return [];
-        }
-
-        return self::getAttachments($product);
-    }
-
-    /**
-     * Get active attachments for product (static method for template use)
-     */
-    public static function getActiveAttachmentsForProduct($product_id): array
-    {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return [];
-        }
-
-        return self::getActiveAttachments($product);
-    }
-
-    /**
-     * Get stats for product (static method for template use)
-     */
-    public static function getStatsForProduct($product_id): array
-    {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return [
-                'total' => 0,
-                'active' => 0,
-                'has_attachments' => false,
-            ];
-        }
-
-        return self::getAttachmentsStats($product);
-    }
-
-    /**
-     * Check if attachments are enabled for product (static method for template use)
-     */
-    public static function isAttachmentsEnabledForProduct($product_id): bool
-    {
-        return (bool) get_field('attachments_enabled', $product_id);
-    }
-
-    /**
-     * Check if product has attachment content (static method for template use)
-     */
-    public static function hasAttachmentContentForProduct($product_id): bool
-    {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return false;
-        }
-
-        return self::hasAttachmentsContent($product);
     }
 }

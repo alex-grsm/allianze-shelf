@@ -3,6 +3,7 @@
 @php
     // Получаем унифицированные мета-данные продукта через helper
     $productMeta = get_product_meta_data($productSummary['id']);
+    @dump($productMeta);
 @endphp
 
 <section class="py-20">

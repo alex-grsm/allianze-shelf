@@ -19,7 +19,7 @@ class ProductChannelsTab extends BaseTab
                 'type' => 'tab',
                 'placement' => 'top',
                 'endpoint' => 0,
-                'conditional_logic' => self::getConditionalLogicForProductType('companies'),
+                'conditional_logic' => create_acf_conditional_logic(['companies']),
             ],
             [
                 'key' => 'field_channels_enabled',
@@ -33,7 +33,7 @@ class ProductChannelsTab extends BaseTab
                 'ui' => 1,
                 'ui_on_text' => 'Yes',
                 'ui_off_text' => 'No',
-                'conditional_logic' => self::getConditionalLogicForProductType('companies'),
+                'conditional_logic' => create_acf_conditional_logic(['companies']),
             ],
             [
                 'key' => 'field_product_channels',
@@ -47,7 +47,7 @@ class ProductChannelsTab extends BaseTab
                 'max' => 20,
                 'layout' => 'block',
                 'button_label' => 'Add Channel',
-                'conditional_logic' => self::getConditionalLogicForProductTypeAndField('companies', 'field_channels_enabled', '1'),
+                'conditional_logic' => create_acf_conditional_logic(['companies'], 'field_channels_enabled', '1'),
                 'sub_fields' => [
                     [
                         'key' => 'field_channel_name',
@@ -88,7 +88,6 @@ class ProductChannelsTab extends BaseTab
         }
 
         return [
-            // Product Channels
             'channels_enabled' => self::isChannelsEnabled($product),
             'channels' => self::getFormattedChannels($product),
             'channels_stats' => self::getChannelsStats($product),
@@ -101,8 +100,26 @@ class ProductChannelsTab extends BaseTab
      */
     public static function getTemplateData(WC_Product $product): ?array
     {
+        if (!self::isEnabledForProductType($product, ['companies']) || !self::isChannelsEnabled($product)) {
+            return ['productChannels' => null];
+        }
+
+        $formatted_channels = self::getFormattedChannels($product);
+
+        if (empty($formatted_channels)) {
+            return ['productChannels' => null];
+        }
+
         return [
-            'productChannels' => self::getChannelsForTemplate($product),
+            'productChannels' => [
+                'channels' => $formatted_channels,
+                'total_count' => count($formatted_channels),
+                'included_count' => count(array_filter($formatted_channels, function($channel) {
+                    return $channel['included'];
+                })),
+                'has_channels' => !empty($formatted_channels),
+                'visible_limit' => 5
+            ]
         ];
     }
 
@@ -111,9 +128,7 @@ class ProductChannelsTab extends BaseTab
      */
     public static function getEmptyTemplateData(): ?array
     {
-        return [
-            'productChannels' => null,
-        ];
+        return ['productChannels' => null];
     }
 
     /**
@@ -128,7 +143,7 @@ class ProductChannelsTab extends BaseTab
     // ===== PRIVATE METHODS =====
 
     /**
-     * Check if channels are enabled for product
+     * Проверить, включены ли channels для продукта
      */
     private static function isChannelsEnabled(WC_Product $product): bool
     {
@@ -136,7 +151,7 @@ class ProductChannelsTab extends BaseTab
     }
 
     /**
-     * Get product channels
+     * Получить channels продукта
      */
     private static function getChannels(WC_Product $product): array
     {
@@ -144,7 +159,7 @@ class ProductChannelsTab extends BaseTab
     }
 
     /**
-     * Get formatted channels for view
+     * Получить отформатированные channels для отображения
      */
     private static function getFormattedChannels(WC_Product $product): array
     {
@@ -165,7 +180,7 @@ class ProductChannelsTab extends BaseTab
     }
 
     /**
-     * Get channels statistics
+     * Получить статистику channels
      */
     private static function getChannelsStats(WC_Product $product): array
     {
@@ -204,7 +219,7 @@ class ProductChannelsTab extends BaseTab
     }
 
     /**
-     * Check if product has channels content
+     * Проверить, есть ли контент для channels
      */
     private static function hasChannelsContent(WC_Product $product): bool
     {
@@ -216,37 +231,10 @@ class ProductChannelsTab extends BaseTab
         return count($channels) > 0;
     }
 
-    /**
-     * Get channels data formatted for template (compatibility with existing product-channels.blade.php)
-     */
-    private static function getChannelsForTemplate(WC_Product $product): ?array
-    {
-        // Проверяем, включены ли каналы и тип продукта
-        if (!self::isEnabledForProductType($product, ['companies']) || !self::isChannelsEnabled($product)) {
-            return null;
-        }
-
-        $formatted_channels = self::getFormattedChannels($product);
-
-        if (empty($formatted_channels)) {
-            return null;
-        }
-
-        return [
-            'channels' => $formatted_channels,
-            'total_count' => count($formatted_channels),
-            'included_count' => count(array_filter($formatted_channels, function($channel) {
-                return $channel['included'];
-            })),
-            'has_channels' => !empty($formatted_channels),
-            'visible_limit' => 5
-        ];
-    }
-
     // ===== STATIC METHODS FOR HOOKS =====
 
     /**
-     * Set default channels when creating product
+     * Установить дефолтные channels при создании продукта
      */
     public static function setDefaultChannels($post_id)
     {
@@ -254,7 +242,7 @@ class ProductChannelsTab extends BaseTab
             return;
         }
 
-        // Only for new products
+        // Только для новых продуктов
         if (get_post_status($post_id) === 'auto-draft' && !get_field('product_channels', $post_id)) {
             $default_channels = [
                 ['channel_name' => 'Web', 'channel_included' => true],
@@ -273,7 +261,7 @@ class ProductChannelsTab extends BaseTab
     }
 
     /**
-     * Ensure published product has channels
+     * Убедиться, что опубликованный продукт имеет channels
      */
     public static function ensureChannelsOnPublish($post_id)
     {
@@ -283,7 +271,7 @@ class ProductChannelsTab extends BaseTab
 
         $channels = get_field('product_channels', $post_id);
 
-        // If no channels, add basic ones
+        // Если нет channels, добавляем базовые
         if (empty($channels)) {
             $basic_channels = [
                 ['channel_name' => 'Web', 'channel_included' => true],
@@ -298,7 +286,7 @@ class ProductChannelsTab extends BaseTab
     // ===== STATIC HELPER METHODS FOR TEMPLATES =====
 
     /**
-     * Check if channel is active for product
+     * Проверить, активен ли канал для продукта
      */
     public static function isChannelActive($product_id, $channel_name): bool
     {
@@ -319,7 +307,7 @@ class ProductChannelsTab extends BaseTab
     }
 
     /**
-     * Get only active product channels
+     * Получить только активные каналы продукта
      */
     public static function getActiveChannels($product_id): array
     {
@@ -336,7 +324,7 @@ class ProductChannelsTab extends BaseTab
     }
 
     /**
-     * Get list of channel names separated by comma
+     * Получить список названий каналов через запятую
      */
     public static function getChannelsList($product_id, $active_only = true, $separator = ', '): string
     {
@@ -352,23 +340,5 @@ class ProductChannelsTab extends BaseTab
         $names = array_column($channels, 'channel_name');
 
         return implode($separator, $names);
-    }
-
-    /**
-     * Get detailed stats for product (static method for template use)
-     */
-    public static function getStatsForProduct($product_id): array
-    {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return [
-                'total' => 0,
-                'included' => 0,
-                'coverage' => 0,
-                'has_channels' => false
-            ];
-        }
-
-        return self::getChannelsStats($product);
     }
 }

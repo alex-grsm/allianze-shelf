@@ -19,7 +19,7 @@ class AssetOverviewTab extends BaseTab
                 'type' => 'tab',
                 'placement' => 'top',
                 'endpoint' => 0,
-                'conditional_logic' => self::getConditionalLogicForProductType('companies'),
+                'conditional_logic' => create_acf_conditional_logic(['companies']),
             ],
             [
                 'key' => 'field_assets_enabled',
@@ -33,7 +33,7 @@ class AssetOverviewTab extends BaseTab
                 'ui' => 1,
                 'ui_on_text' => 'Yes',
                 'ui_off_text' => 'No',
-                'conditional_logic' => self::getConditionalLogicForProductType('companies'),
+                'conditional_logic' => create_acf_conditional_logic(['companies']),
             ],
             [
                 'key' => 'field_asset_description',
@@ -45,7 +45,7 @@ class AssetOverviewTab extends BaseTab
                 'rows' => 3,
                 'placeholder' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
                 'maxlength' => 400,
-                'conditional_logic' => self::getConditionalLogicForProductTypeAndField('companies', 'field_assets_enabled', '1'),
+                'conditional_logic' => create_acf_conditional_logic(['companies']),
             ],
             [
                 'key' => 'field_product_assets',
@@ -59,7 +59,7 @@ class AssetOverviewTab extends BaseTab
                 'max' => 10,
                 'layout' => 'block',
                 'button_label' => 'Add Asset',
-                'conditional_logic' => self::getConditionalLogicForProductTypeAndField('companies', 'field_assets_enabled', '1'),
+                'conditional_logic' => create_acf_conditional_logic(['companies']),
                 'sub_fields' => [
                     [
                         'key' => 'field_asset_label',
@@ -111,10 +111,10 @@ class AssetOverviewTab extends BaseTab
         }
 
         return [
-            // Asset Overview
             'assets_enabled' => self::isAssetsEnabled($product),
             'asset_description' => self::getAssetDescription($product),
-            'assets' => self::getActiveAssetsFormatted($product),
+            'assets' => self::getFormattedAssets($product),
+            'assets_stats' => self::getAssetsStats($product),
             'has_asset_content' => self::hasAssetContent($product),
         ];
     }
@@ -124,8 +124,23 @@ class AssetOverviewTab extends BaseTab
      */
     public static function getTemplateData(WC_Product $product): ?array
     {
+        if (!self::isEnabledForProductType($product, ['companies']) || !self::isAssetsEnabled($product)) {
+            return ['assetOverview' => null];
+        }
+
+        $formatted_assets = self::getFormattedAssets($product);
+
+        if (empty($formatted_assets)) {
+            return ['assetOverview' => null];
+        }
+
         return [
-            'assetOverview' => self::getAssetOverviewForTemplate($product),
+            'assetOverview' => [
+                'description' => self::getAssetDescription($product),
+                'assets' => $formatted_assets,
+                'total_count' => count($formatted_assets),
+                'has_assets' => !empty($formatted_assets),
+            ]
         ];
     }
 
@@ -134,9 +149,7 @@ class AssetOverviewTab extends BaseTab
      */
     public static function getEmptyTemplateData(): ?array
     {
-        return [
-            'assetOverview' => null,
-        ];
+        return ['assetOverview' => null];
     }
 
     /**
@@ -151,7 +164,7 @@ class AssetOverviewTab extends BaseTab
     // ===== PRIVATE METHODS =====
 
     /**
-     * Check if assets are enabled for product
+     * Проверить, включены ли assets для продукта
      */
     private static function isAssetsEnabled(WC_Product $product): bool
     {
@@ -159,7 +172,7 @@ class AssetOverviewTab extends BaseTab
     }
 
     /**
-     * Get asset description
+     * Получить описание assets
      */
     private static function getAssetDescription(WC_Product $product): string
     {
@@ -167,7 +180,7 @@ class AssetOverviewTab extends BaseTab
     }
 
     /**
-     * Get product assets
+     * Получить assets продукта
      */
     private static function getAssets(WC_Product $product): array
     {
@@ -175,7 +188,7 @@ class AssetOverviewTab extends BaseTab
     }
 
     /**
-     * Get only active assets with images
+     * Получить только активные assets с изображениями
      */
     private static function getActiveAssets(WC_Product $product): array
     {
@@ -187,9 +200,9 @@ class AssetOverviewTab extends BaseTab
     }
 
     /**
-     * Get active assets formatted for view
+     * Получить отформатированные assets для отображения
      */
-    private static function getActiveAssetsFormatted(WC_Product $product): array
+    private static function getFormattedAssets(WC_Product $product): array
     {
         $assets = self::getActiveAssets($product);
         $formatted_assets = [];
@@ -208,7 +221,22 @@ class AssetOverviewTab extends BaseTab
     }
 
     /**
-     * Check if product has asset content
+     * Получить статистику assets
+     */
+    private static function getAssetsStats(WC_Product $product): array
+    {
+        $assets = self::getAssets($product);
+        $active_assets = self::getActiveAssets($product);
+
+        return [
+            'total' => count($assets),
+            'active' => count($active_assets),
+            'has_assets' => count($active_assets) > 0,
+        ];
+    }
+
+    /**
+     * Проверить, есть ли контент для assets
      */
     private static function hasAssetContent(WC_Product $product): bool
     {
@@ -220,34 +248,10 @@ class AssetOverviewTab extends BaseTab
         return count($active_assets) > 0;
     }
 
-    /**
-     * Get asset overview data formatted for template
-     */
-    private static function getAssetOverviewForTemplate(WC_Product $product): ?array
-    {
-        // Проверяем, включены ли ассеты и тип продукта
-        if (!self::isEnabledForProductType($product, ['companies']) || !self::isAssetsEnabled($product)) {
-            return null;
-        }
-
-        $formatted_assets = self::getActiveAssetsFormatted($product);
-
-        if (empty($formatted_assets)) {
-            return null;
-        }
-
-        return [
-            'description' => self::getAssetDescription($product),
-            'assets' => $formatted_assets,
-            'total_count' => count($formatted_assets),
-            'has_assets' => !empty($formatted_assets),
-        ];
-    }
-
     // ===== STATIC METHODS FOR HOOKS =====
 
     /**
-     * Set default assets when creating product
+     * Установить дефолтные assets при создании продукта
      */
     public static function setDefaultAssets($post_id)
     {
@@ -255,7 +259,7 @@ class AssetOverviewTab extends BaseTab
             return;
         }
 
-        // Only for new products
+        // Только для новых продуктов
         if (get_post_status($post_id) === 'auto-draft' && !get_field('product_assets', $post_id)) {
             $default_assets = [
                 [
@@ -279,7 +283,7 @@ class AssetOverviewTab extends BaseTab
     }
 
     /**
-     * Ensure published product has assets
+     * Убедиться, что опубликованный продукт имеет assets
      */
     public static function ensureAssetsOnPublish($post_id)
     {
@@ -289,7 +293,7 @@ class AssetOverviewTab extends BaseTab
 
         $assets = get_field('product_assets', $post_id);
 
-        // If no assets, add basic ones
+        // Если нет assets, добавляем базовые
         if (empty($assets)) {
             $basic_assets = [
                 [
