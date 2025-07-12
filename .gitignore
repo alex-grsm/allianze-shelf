@@ -11,7 +11,6 @@
 /public/hot
 /public/manifest
 !/public/.gitkeep
-composer.lock
 
 # ===================================
 # Environment files
