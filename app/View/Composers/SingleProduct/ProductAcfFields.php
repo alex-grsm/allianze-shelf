@@ -9,6 +9,7 @@ use WC_Product;
 use App\View\Composers\SingleProduct\Tabs\CompaniesInfoTab;
 use App\View\Composers\SingleProduct\Tabs\BuyoutDetailsTab;
 use App\View\Composers\SingleProduct\Tabs\AssetOverviewTab;
+use App\View\Composers\SingleProduct\Tabs\AssetOverviewListTab;
 use App\View\Composers\SingleProduct\Tabs\ProductChannelsTab;
 use App\View\Composers\SingleProduct\Tabs\ProductLinksTab;
 use App\View\Composers\SingleProduct\Tabs\AttachmentsTab;
@@ -27,6 +28,7 @@ class ProductAcfFields extends Composer
         'partials.product-card',
         'partials.single-product.buyout-details',
         'partials.single-product.asset-overview',
+        'partials.single-product.asset-overview-list',
         'partials.single-product.product-channels',
         'partials.single-product.product-links',
         'partials.single-product.attachments',
@@ -42,6 +44,7 @@ class ProductAcfFields extends Composer
         LandingPageInformationTab::class,
         BuyoutDetailsTab::class,
         AssetOverviewTab::class,
+        AssetOverviewListTab::class,
         ProductChannelsTab::class,
         ProductLinksTab::class,
         AttachmentsTab::class
@@ -62,18 +65,21 @@ class ProductAcfFields extends Composer
         'social_media_assets' => [
             SocialMediaAssetsInfoTab::class,
             BuyoutDetailsTab::class,
+            AssetOverviewListTab::class,
             ProductLinksTab::class,
             AttachmentsTab::class,
         ],
         'newsletter' => [
             NewsletterInformationTab::class,
             BuyoutDetailsTab::class,
+            AssetOverviewListTab::class,
             ProductLinksTab::class,
             AttachmentsTab::class,
         ],
         'landing_page' => [
             LandingPageInformationTab::class,
             BuyoutDetailsTab::class,
+            AssetOverviewListTab::class,
             ProductLinksTab::class,
             AttachmentsTab::class,
         ],
@@ -200,6 +206,7 @@ class ProductAcfFields extends Composer
             NewsletterInformationTab::class => $productType === 'newsletter',
             LandingPageInformationTab::class => $productType === 'landing_page',
             AssetOverviewTab::class => current_product_supports($product, 'asset_overview'),
+            AssetOverviewListTab::class => in_array($productType, ['social_media_assets', 'newsletter', 'landing_page']), // Обновленное условие
             ProductChannelsTab::class => current_product_supports($product, 'channels'),
             default => true, // Other tabs are visible for all types
         };
@@ -217,6 +224,7 @@ class ProductAcfFields extends Composer
             LandingPageInformationTab::class => 'landing_page_info',
             BuyoutDetailsTab::class => 'buyout_details',
             AssetOverviewTab::class => 'asset_overview',
+            AssetOverviewListTab::class => 'asset_overview_list', // Новое имя таба
             ProductChannelsTab::class => 'product_channels',
             ProductLinksTab::class => 'product_links',
             AttachmentsTab::class => 'attachments',

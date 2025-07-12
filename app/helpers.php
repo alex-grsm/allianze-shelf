@@ -295,6 +295,7 @@ function product_type_supports(string $productType, string $feature): bool
 {
     $features = [
         'asset_overview' => [PRODUCT_TYPE_COMPANIES],
+        'asset_overview_list' => [PRODUCT_TYPE_SOCIAL_MEDIA_ASSETS, PRODUCT_TYPE_NEWSLETTER, PRODUCT_TYPE_LANDING_PAGE], // Обновленная функция
         'channels' => [PRODUCT_TYPE_COMPANIES],
         'buyout_details' => get_all_product_types(),
         'links' => get_all_product_types(),
@@ -334,6 +335,7 @@ function get_default_acf_values(string $productType): array
 {
     return [
         'assets_enabled' => product_type_supports($productType, 'asset_overview'),
+        'asset_overview_list_enabled' => product_type_supports($productType, 'asset_overview_list'), // Новое поле
         'channels_enabled' => product_type_supports($productType, 'channels'),
         'buyout_enabled' => true,
         'links_enabled' => true,

@@ -10,6 +10,7 @@ The Template for displaying all single products
 @section('content')
     @include('partials.single-product.product-summary')
     @include('partials.single-product.asset-overview')
+    @include('partials.single-product.asset-overview-list')
     @include('partials.single-product.product-channels')
     @include('partials.single-product.buyout-details')
     @include('partials.single-product.product-links')

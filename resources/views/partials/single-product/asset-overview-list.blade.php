@@ -3,7 +3,7 @@
 @if (
     !empty($assetOverviewList['has_items']) &&
     isset($productAcfFields['product_type']) &&
-    in_array($productAcfFields['product_type'], ['newsletter', 'landing_page'])
+    in_array($productAcfFields['product_type'], ['social_media_assets', 'newsletter', 'landing_page'])
 )
 
     <section class="asset-overview-list-section pb-20 pt-10">
@@ -13,12 +13,6 @@
                 <h2 class="text-3xl font-bold text-blue-600 mb-4">
                     Asset Overview
                 </h2>
-                {{-- Проверяем наличие описания перед выводом --}}
-                @if (!empty($assetOverviewList['description']))
-                    <div class="text-blue-600 text-lg max-w-4xl leading-relaxed">
-                        {{ $assetOverviewList['description'] }}
-                    </div>
-                @endif
             </div>
 
             {{-- LIST DISPLAY --}}
@@ -27,18 +21,11 @@
                     @foreach ($assetOverviewList['items'] as $item)
                         @if (is_array($item) && !empty($item['description']) && !empty($item['image']))
                             <div class="asset-overview-item
-                                        @if($item['index'] % 2 === 0) lg:flex-row @else lg:flex-row-reverse @endif
+                                        @if($item['index'] % 2 === 0) lg:flex-row-reverse @else lg:flex-row @endif
                                         flex flex-col lg:gap-16 gap-8 items-center">
 
                                 {{-- Text Content --}}
                                 <div class="lg:w-1/2 w-full">
-                                    {{-- Title (если есть) --}}
-                                    @if (!empty($item['title']))
-                                        <h3 class="text-2xl font-bold text-blue-600 mb-4">
-                                            {{ $item['title'] }}
-                                        </h3>
-                                    @endif
-
                                     {{-- Description --}}
                                     <div class="text-blue-600 text-lg leading-relaxed">
                                         {!! nl2br(e($item['description'])) !!}
@@ -49,7 +36,7 @@
                                 <div class="lg:w-1/2 w-full">
                                     <div class="relative overflow-hidden rounded-2xl shadow-lg group">
                                         <img src="{{ $item['image']['sizes']['large'] ?? ($item['image']['url'] ?? '') }}"
-                                            alt="{{ $item['image']['alt'] ?? ($item['title'] ?? 'Asset overview image') }}"
+                                            alt="{{ $item['image']['alt'] ?? 'Asset overview image' }}"
                                             class="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                                             loading="lazy">
 
