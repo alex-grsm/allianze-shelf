@@ -19,7 +19,7 @@ class AttachmentsTab extends BaseTab
                 'type' => 'tab',
                 'placement' => 'top',
                 'endpoint' => 0,
-                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter']),
+                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
             ],
             [
                 'key' => 'field_attachments_enabled',
@@ -33,7 +33,7 @@ class AttachmentsTab extends BaseTab
                 'ui' => 1,
                 'ui_on_text' => 'Yes',
                 'ui_off_text' => 'No',
-                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter']),
+                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
             ],
             [
                 'key' => 'field_attachments_description',
@@ -45,7 +45,7 @@ class AttachmentsTab extends BaseTab
                 'rows' => 3,
                 'placeholder' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
                 'maxlength' => 400,
-                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter'], 'field_attachments_enabled', '1'),
+                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter', 'landing_page'], 'field_attachments_enabled', '1'),
             ],
             [
                 'key' => 'field_product_attachments',
@@ -59,7 +59,7 @@ class AttachmentsTab extends BaseTab
                 'max' => 10,
                 'layout' => 'block',
                 'button_label' => 'Add Attachment',
-                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter'], 'field_attachments_enabled', '1'),
+                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter', 'landing_page'], 'field_attachments_enabled', '1'),
                 'sub_fields' => [
                     [
                         'key' => 'field_attachment_label',
@@ -106,7 +106,7 @@ class AttachmentsTab extends BaseTab
      */
     public static function getDataForProduct(WC_Product $product): ?array
     {
-        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter'])) {
+        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page'])) {
             return null;
         }
 
@@ -244,7 +244,7 @@ class AttachmentsTab extends BaseTab
     private static function getAttachmentsForTemplate(WC_Product $product): ?array
     {
         // Проверяем, включены ли вложения и тип продукта
-        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter']) || !self::isAttachmentsEnabled($product)) {
+        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page']) || !self::isAttachmentsEnabled($product)) {
             return null;
         }
 
