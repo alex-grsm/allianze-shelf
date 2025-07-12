@@ -72,9 +72,11 @@ class BuyoutDetailsTab extends BaseTab
             return null;
         }
 
+        $productId = $product->get_id();
+
         return [
-            'buyout_enabled' => self::isBuyoutEnabled($product),
-            'buyout_description' => self::getBuyoutDescription($product),
+            'buyout_enabled' => self::getBooleanFieldValue('buyout_enabled', $productId, true),
+            'buyout_description' => self::getFieldValue('buyout_description', $productId),
             'buyout_table_image' => self::getBuyoutTableImage($product),
             'has_buyout_content' => self::hasBuyoutContent($product),
         ];
@@ -85,25 +87,27 @@ class BuyoutDetailsTab extends BaseTab
      */
     public static function getTemplateData(WC_Product $product): ?array
     {
-        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page']) || !self::isBuyoutEnabled($product)) {
+        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page'])
+            || !self::isBuyoutEnabled($product)) {
             return ['buyoutDetails' => null];
         }
 
-        $description = self::getBuyoutDescription($product);
-        $image = self::getBuyoutTableImage($product);
+        $description = self::getFieldValue('buyout_description', $product->get_id());
+        $imageData = self::getBuyoutTableImage($product);
 
         // Если нет контента, возвращаем null
-        if (empty($description) && empty($image)) {
+        if (empty($description) && empty($imageData)) {
             return ['buyoutDetails' => null];
         }
 
         return [
             'buyoutDetails' => [
-                'description' => $description ?: '',
-                'table_image' => $image,
-                'table_alt' => $image['alt'] ?? 'Buyout details table',
-                'has_image' => !empty($image),
-                'has_content' => !empty($description) || !empty($image),
+                'description' => $description,
+                'table_image' => $imageData ? $imageData['original'] : null, // Для совместимости
+                'table_image_data' => $imageData, // Новые форматированные данные
+                'table_alt' => $imageData ? ($imageData['alt'] ?: 'Buyout details table') : '',
+                'has_image' => !empty($imageData),
+                'has_content' => !empty($description) || !empty($imageData),
             ]
         ];
     }
@@ -123,23 +127,28 @@ class BuyoutDetailsTab extends BaseTab
      */
     private static function isBuyoutEnabled(WC_Product $product): bool
     {
-        return (bool) get_field('buyout_enabled', $product->get_id());
+        return self::getBooleanFieldValue('buyout_enabled', $product->get_id(), true);
     }
 
     /**
-     * Получить описание buyout
-     */
-    private static function getBuyoutDescription(WC_Product $product): string
-    {
-        return get_field('buyout_description', $product->get_id()) ?: '';
-    }
-
-    /**
-     * Получить изображение таблицы buyout
+     * Получить изображение таблицы buyout с форматированием
      */
     private static function getBuyoutTableImage(WC_Product $product): ?array
     {
-        return get_field('buyout_table_image', $product->get_id());
+        $imageField = get_field('buyout_table_image', $product->get_id());
+
+        if (!$imageField) {
+            return null;
+        }
+
+        $formattedData = self::formatImageData($imageField);
+
+        if ($formattedData) {
+            // Добавляем оригинальные данные для совместимости
+            $formattedData['original'] = $imageField;
+        }
+
+        return $formattedData;
     }
 
     /**
@@ -151,9 +160,18 @@ class BuyoutDetailsTab extends BaseTab
             return false;
         }
 
-        $description = self::getBuyoutDescription($product);
+        $productId = $product->get_id();
+        $description = self::getFieldValue('buyout_description', $productId);
         $image = self::getBuyoutTableImage($product);
 
         return !empty($description) || !empty($image);
+    }
+
+    /**
+     * Проверить, есть ли данные для отображения
+     */
+    protected static function hasContent(WC_Product $product): bool
+    {
+        return self::hasBuyoutContent($product);
     }
 }

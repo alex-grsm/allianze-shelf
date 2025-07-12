@@ -144,9 +144,11 @@ class ProductLinksTab extends BaseTab
             return null;
         }
 
+        $productId = $product->get_id();
+
         return [
-            'links_enabled' => self::isLinksEnabled($product),
-            'links_description' => self::getLinksDescription($product),
+            'links_enabled' => self::getBooleanFieldValue('links_enabled', $productId, true),
+            'links_description' => self::getFieldValue('links_description', $productId, self::getDefaultDescription()),
             'links' => self::getFormattedLinks($product),
             'links_stats' => self::getLinksStats($product),
             'has_links_content' => self::hasLinksContent($product),
@@ -158,7 +160,8 @@ class ProductLinksTab extends BaseTab
      */
     public static function getTemplateData(WC_Product $product): ?array
     {
-        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page']) || !self::isLinksEnabled($product)) {
+        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page'])
+            || !self::isLinksEnabled($product)) {
             return ['productLinks' => null];
         }
 
@@ -170,7 +173,7 @@ class ProductLinksTab extends BaseTab
 
         return [
             'productLinks' => [
-                'description' => self::getLinksDescription($product),
+                'description' => self::getFieldValue('links_description', $product->get_id(), self::getDefaultDescription()),
                 'links' => $formatted_links,
                 'total_count' => count($formatted_links),
                 'has_links' => !empty($formatted_links),
@@ -203,23 +206,7 @@ class ProductLinksTab extends BaseTab
      */
     private static function isLinksEnabled(WC_Product $product): bool
     {
-        return (bool) get_field('links_enabled', $product->get_id());
-    }
-
-    /**
-     * Получить описание links
-     */
-    private static function getLinksDescription(WC_Product $product): string
-    {
-        return get_field('links_description', $product->get_id()) ?: 'The following links give you access to additional resources and information';
-    }
-
-    /**
-     * Получить links продукта
-     */
-    private static function getLinks(WC_Product $product): array
-    {
-        return get_field('product_links', $product->get_id()) ?: [];
+        return self::getBooleanFieldValue('links_enabled', $product->get_id(), true);
     }
 
     /**
@@ -227,7 +214,7 @@ class ProductLinksTab extends BaseTab
      */
     private static function getActiveLinks(WC_Product $product): array
     {
-        $links = self::getLinks($product);
+        $links = self::getRepeaterFieldValue('product_links', $product->get_id());
 
         return array_filter($links, function($link) {
             return !empty($link['link_enabled']) && !empty($link['link_title']);
@@ -244,14 +231,20 @@ class ProductLinksTab extends BaseTab
 
         foreach ($links as $link) {
             if (!empty($link['link_title'])) {
+                $logoData = null;
+                if (!empty($link['link_logo'])) {
+                    $logoData = self::formatImageData($link['link_logo']);
+                }
+
                 $formatted_links[] = [
                     'title' => $link['link_title'],
-                    'description' => $link['link_description'] ?: '',
-                    'url' => $link['link_url'] ?: '#',
+                    'description' => $link['link_description'] ?? '',
+                    'url' => $link['link_url'] ?? '#',
                     'target' => !empty($link['link_target']) ? '_blank' : '_self',
-                    'logo' => $link['link_logo'] ?: null,
-                    'slug' => sanitize_title($link['link_title']),
-                    'has_logo' => !empty($link['link_logo']),
+                    'logo' => $link['link_logo'] ?? null, // Оригинальные данные для совместимости
+                    'logo_data' => $logoData, // Новые форматированные данные
+                    'slug' => self::createSlug($link['link_title']),
+                    'has_logo' => !empty($logoData),
                     'has_url' => !empty($link['link_url']) && $link['link_url'] !== '#',
                 ];
             }
@@ -265,13 +258,13 @@ class ProductLinksTab extends BaseTab
      */
     private static function getLinksStats(WC_Product $product): array
     {
-        $links = self::getLinks($product);
-        $active_links = self::getActiveLinks($product);
+        $allLinks = self::getRepeaterFieldValue('product_links', $product->get_id());
+        $activeLinks = self::getActiveLinks($product);
 
         return [
-            'total' => count($links),
-            'active' => count($active_links),
-            'has_links' => count($active_links) > 0,
+            'total' => count($allLinks),
+            'active' => count($activeLinks),
+            'has_links' => count($activeLinks) > 0,
         ];
     }
 
@@ -284,8 +277,70 @@ class ProductLinksTab extends BaseTab
             return false;
         }
 
-        $active_links = self::getActiveLinks($product);
-        return count($active_links) > 0;
+        $activeLinks = self::getActiveLinks($product);
+        return count($activeLinks) > 0;
+    }
+
+    /**
+     * Получить описание по умолчанию
+     */
+    private static function getDefaultDescription(): string
+    {
+        return 'The following links give you access to additional resources and information';
+    }
+
+    /**
+     * Получить дефолтные ссылки
+     */
+    private static function getDefaultLinks(): array
+    {
+        return [
+            [
+                'link_title' => 'Media Analysis',
+                'link_enabled' => true,
+                'link_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.',
+                'link_url' => '#',
+                'link_target' => true,
+            ],
+            [
+                'link_title' => 'CRM Platform',
+                'link_enabled' => true,
+                'link_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.',
+                'link_url' => '#',
+                'link_target' => true,
+            ],
+            [
+                'link_title' => 'Experience Manager',
+                'link_enabled' => true,
+                'link_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.',
+                'link_url' => '#',
+                'link_target' => true,
+            ],
+        ];
+    }
+
+    /**
+     * Получить базовые ссылки
+     */
+    private static function getBasicLinks(): array
+    {
+        return [
+            [
+                'link_title' => 'Information Portal',
+                'link_enabled' => true,
+                'link_description' => 'Access additional product information and resources.',
+                'link_url' => '#',
+                'link_target' => true,
+            ],
+        ];
+    }
+
+    /**
+     * Проверить, есть ли данные для отображения
+     */
+    protected static function hasContent(WC_Product $product): bool
+    {
+        return self::hasLinksContent($product);
     }
 
     // ===== STATIC METHODS FOR HOOKS =====
@@ -301,32 +356,8 @@ class ProductLinksTab extends BaseTab
 
         // Только для новых продуктов
         if (get_post_status($post_id) === 'auto-draft' && !get_field('product_links', $post_id)) {
-            $default_links = [
-                [
-                    'link_title' => 'Media Analysis',
-                    'link_enabled' => true,
-                    'link_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.',
-                    'link_url' => '#',
-                    'link_target' => true,
-                ],
-                [
-                    'link_title' => 'CRM Platform',
-                    'link_enabled' => true,
-                    'link_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.',
-                    'link_url' => '#',
-                    'link_target' => true,
-                ],
-                [
-                    'link_title' => 'Experience Manager',
-                    'link_enabled' => true,
-                    'link_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.',
-                    'link_url' => '#',
-                    'link_target' => true,
-                ],
-            ];
-
-            update_field('product_links', $default_links, $post_id);
-            update_field('links_description', 'The following links give you access to list pages, media analyses and CRM information', $post_id);
+            update_field('product_links', self::getDefaultLinks(), $post_id);
+            update_field('links_description', self::getDefaultDescription(), $post_id);
             update_field('links_enabled', true, $post_id);
         }
     }
@@ -344,17 +375,7 @@ class ProductLinksTab extends BaseTab
 
         // Если нет links, добавляем базовые
         if (empty($links)) {
-            $basic_links = [
-                [
-                    'link_title' => 'Information Portal',
-                    'link_enabled' => true,
-                    'link_description' => 'Access additional product information and resources.',
-                    'link_url' => '#',
-                    'link_target' => true,
-                ],
-            ];
-
-            update_field('product_links', $basic_links, $post_id);
+            update_field('product_links', self::getBasicLinks(), $post_id);
         }
     }
 }
