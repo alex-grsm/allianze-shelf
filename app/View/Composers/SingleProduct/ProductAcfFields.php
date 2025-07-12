@@ -16,6 +16,10 @@ use App\View\Composers\SingleProduct\Tabs\SocialMediaAssetsInfoTab;
 use App\View\Composers\SingleProduct\Tabs\NewsletterInformationTab;
 use App\View\Composers\SingleProduct\Tabs\LandingPageInformationTab;
 
+// Импортируем глобальные классы
+use ProductTypes;
+use ProductFieldPrefixes;
+
 class ProductAcfFields extends Composer
 {
     protected static $views = [
@@ -29,7 +33,7 @@ class ProductAcfFields extends Composer
     ];
 
     /**
-     * Все доступные табы
+     * All available tabs
      */
     private static $allTabs = [
         CompaniesInfoTab::class,
@@ -44,45 +48,35 @@ class ProductAcfFields extends Composer
     ];
 
     /**
-     * Порядок табов для типа Companies
+     * Tab order configuration for each product type
      */
-    private static $companiesTabsOrder = [
-        CompaniesInfoTab::class,
-        BuyoutDetailsTab::class,
-        AssetOverviewTab::class,
-        ProductChannelsTab::class,
-        ProductLinksTab::class,
-        AttachmentsTab::class
-    ];
-
-    /**
-     * Порядок табов для типа Social Media Assets
-     */
-    private static $socialMediaTabsOrder = [
-        SocialMediaAssetsInfoTab::class,
-        BuyoutDetailsTab::class,
-        ProductLinksTab::class,
-        AttachmentsTab::class,
-    ];
-
-    /**
-     * Порядок табов для типа Newsletter
-     */
-    private static $newsletterTabsOrder = [
-        NewsletterInformationTab::class,
-        BuyoutDetailsTab::class,
-        ProductLinksTab::class,
-        AttachmentsTab::class,
-    ];
-
-    /**
-     * Порядок табов для типа Landing Page
-     */
-    private static $landingPageTabsOrder = [
-        LandingPageInformationTab::class,
-        BuyoutDetailsTab::class,
-        ProductLinksTab::class,
-        AttachmentsTab::class,
+    private static $tabsOrderConfig = [
+        'companies' => [
+            CompaniesInfoTab::class,
+            BuyoutDetailsTab::class,
+            AssetOverviewTab::class,
+            ProductChannelsTab::class,
+            ProductLinksTab::class,
+            AttachmentsTab::class
+        ],
+        'social_media_assets' => [
+            SocialMediaAssetsInfoTab::class,
+            BuyoutDetailsTab::class,
+            ProductLinksTab::class,
+            AttachmentsTab::class,
+        ],
+        'newsletter' => [
+            NewsletterInformationTab::class,
+            BuyoutDetailsTab::class,
+            ProductLinksTab::class,
+            AttachmentsTab::class,
+        ],
+        'landing_page' => [
+            LandingPageInformationTab::class,
+            BuyoutDetailsTab::class,
+            ProductLinksTab::class,
+            AttachmentsTab::class,
+        ],
     ];
 
     /**
@@ -93,7 +87,7 @@ class ProductAcfFields extends Composer
         // Register ACF fields
         static::registerAcfFields();
 
-        // Регистрируем хуки для всех табов
+        // Register tab hooks
         static::registerTabHooks();
 
         // Composer will be registered automatically through Sage
@@ -101,30 +95,30 @@ class ProductAcfFields extends Composer
 
     public function with()
     {
-        // Проверяем WooCommerce
+        // Check WooCommerce
         if (!function_exists('wc_get_product')) {
             return $this->getEmptyData();
         }
 
         global $product;
 
-        // Если это не страница товара, пытаемся получить товар из текущего поста в цикле
+        // Get product from current post if not a product page
         if (!$product instanceof WC_Product) {
             $product = wc_get_product(get_the_ID());
         }
 
-        // Если всё ещё нет товара, возвращаем null
+        // If still no product, return empty data
         if (!$product instanceof WC_Product) {
             return $this->getEmptyData();
         }
 
-        // Получаем тип продукта
-        $productType = $this->getProductType($product);
+        // Get product type using helper
+        $productType = get_product_type($product);
 
-        // Определяем порядок табов в зависимости от типа продукта
+        // Get tabs order for product type
         $tabsOrder = $this->getTabsOrder($productType);
 
-        // Собираем данные от всех табов
+        // Collect data from all tabs
         $data = [
             'productAcfFields' => [
                 'product_type' => $productType,
@@ -132,14 +126,18 @@ class ProductAcfFields extends Composer
             ]
         ];
 
-        // Получаем данные от каждого таба в правильном порядке
+        // Add unified product meta data
+        $productMeta = get_product_meta_data($product);
+        $data['productAcfFields'] = array_merge($data['productAcfFields'], $productMeta);
+
+        // Get data from each tab in correct order
         foreach ($tabsOrder as $tabClass) {
             $tabData = $tabClass::getDataForProduct($product);
             if ($tabData) {
                 $data['productAcfFields'] = array_merge($data['productAcfFields'], $tabData);
             }
 
-            // Получаем данные для отдельных переменных (для совместимости)
+            // Get template data for separate variables (for compatibility)
             $templateData = $tabClass::getTemplateData($product);
             if ($templateData) {
                 $data = array_merge($data, $templateData);
@@ -150,21 +148,15 @@ class ProductAcfFields extends Composer
     }
 
     /**
-     * Получить порядок табов в зависимости от типа продукта
+     * Get tabs order based on product type
      */
     private function getTabsOrder(string $productType): array
     {
-        return match ($productType) {
-            'social_media_assets' => self::$socialMediaTabsOrder,
-            'newsletter' => self::$newsletterTabsOrder,
-            'landing_page' => self::$landingPageTabsOrder,
-            'companies' => self::$companiesTabsOrder,
-            default => self::$companiesTabsOrder,
-        };
+        return self::$tabsOrderConfig[$productType] ?? self::$tabsOrderConfig['companies'];
     }
 
     /**
-     * Получить информацию о табах для фронтенда
+     * Get tabs info for frontend
      */
     private function getTabsInfo(array $tabsOrder, WC_Product $product): array
     {
@@ -172,7 +164,7 @@ class ProductAcfFields extends Composer
         $activeTabSet = false;
 
         foreach ($tabsOrder as $index => $tabClass) {
-            // Определяем является ли таб видимым для текущего типа продукта
+            // Check if tab is visible for current product type
             $isVisible = $this->isTabVisible($tabClass, $product);
 
             $tabInfo = [
@@ -183,7 +175,7 @@ class ProductAcfFields extends Composer
                 'order' => $index,
             ];
 
-            // Делаем первый видимый таб активным
+            // Make first visible tab active
             if ($isVisible && !$activeTabSet) {
                 $tabInfo['is_active'] = true;
                 $activeTabSet = true;
@@ -196,24 +188,25 @@ class ProductAcfFields extends Composer
     }
 
     /**
-     * Проверить, виден ли таб для данного типа продукта
+     * Check if tab is visible for given product type
      */
     private function isTabVisible(string $tabClass, WC_Product $product): bool
     {
-        $productType = $this->getProductType($product);
+        $productType = get_product_type($product);
 
-        // Проверяем видимость табов в зависимости от типа продукта
         return match ($tabClass) {
             CompaniesInfoTab::class => $productType === 'companies',
             SocialMediaAssetsInfoTab::class => $productType === 'social_media_assets',
             NewsletterInformationTab::class => $productType === 'newsletter',
             LandingPageInformationTab::class => $productType === 'landing_page',
-            default => true, // Остальные табы видны для всех типов
+            AssetOverviewTab::class => current_product_supports($product, 'asset_overview'),
+            ProductChannelsTab::class => current_product_supports($product, 'channels'),
+            default => true, // Other tabs are visible for all types
         };
     }
 
     /**
-     * Получить название таба
+     * Get tab name
      */
     private function getTabName(string $tabClass): string
     {
@@ -241,9 +234,9 @@ class ProductAcfFields extends Composer
         }
 
         add_action('acf/init', function () {
-            // Базовые поля
+            // Base fields
             $fields = [
-                // Улучшенное поле выбора типа продукта
+                // Improved product type selection field
                 [
                     'key' => 'field_product_type',
                     'label' => 'Product Type',
@@ -269,7 +262,7 @@ class ProductAcfFields extends Composer
                 ],
             ];
 
-            // Добавляем поля от каждого таба в правильном порядке
+            // Add fields from each tab in correct order
             foreach (self::$allTabs as $tabClass) {
                 $tabFields = $tabClass::getFields();
                 if ($tabFields) {
@@ -302,7 +295,7 @@ class ProductAcfFields extends Composer
     }
 
     /**
-     * Регистрируем хуки для всех табов
+     * Register hooks for all tabs
      */
     private static function registerTabHooks(): void
     {
@@ -314,21 +307,13 @@ class ProductAcfFields extends Composer
     }
 
     /**
-     * Get product type
-     */
-    private function getProductType(WC_Product $product): string
-    {
-        return get_field('product_type', $product->get_id()) ?: 'companies';
-    }
-
-    /**
      * Return empty data structure
      */
     private function getEmptyData(): array
     {
         $emptyData = ['productAcfFields' => null];
 
-        // Добавляем пустые данные для каждого таба
+        // Add empty data for each tab
         foreach (self::$allTabs as $tabClass) {
             $tabEmptyData = $tabClass::getEmptyTemplateData();
             if ($tabEmptyData) {
