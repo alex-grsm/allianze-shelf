@@ -110,9 +110,11 @@ class AssetOverviewTab extends BaseTab
             return null;
         }
 
+        $productId = $product->get_id();
+
         return [
-            'assets_enabled' => self::isAssetsEnabled($product),
-            'asset_description' => self::getAssetDescription($product),
+            'assets_enabled' => self::getBooleanFieldValue('assets_enabled', $productId, true),
+            'asset_description' => self::getFieldValue('asset_description', $productId, self::getDefaultDescription()),
             'assets' => self::getFormattedAssets($product),
             'assets_stats' => self::getAssetsStats($product),
             'has_asset_content' => self::hasAssetContent($product),
@@ -136,7 +138,7 @@ class AssetOverviewTab extends BaseTab
 
         return [
             'assetOverview' => [
-                'description' => self::getAssetDescription($product),
+                'description' => self::getFieldValue('asset_description', $product->get_id(), self::getDefaultDescription()),
                 'assets' => $formatted_assets,
                 'total_count' => count($formatted_assets),
                 'has_assets' => !empty($formatted_assets),
@@ -168,23 +170,7 @@ class AssetOverviewTab extends BaseTab
      */
     private static function isAssetsEnabled(WC_Product $product): bool
     {
-        return (bool) get_field('assets_enabled', $product->get_id());
-    }
-
-    /**
-     * Получить описание assets
-     */
-    private static function getAssetDescription(WC_Product $product): string
-    {
-        return get_field('asset_description', $product->get_id()) ?: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.';
-    }
-
-    /**
-     * Получить assets продукта
-     */
-    private static function getAssets(WC_Product $product): array
-    {
-        return get_field('product_assets', $product->get_id()) ?: [];
+        return self::getBooleanFieldValue('assets_enabled', $product->get_id(), true);
     }
 
     /**
@@ -192,7 +178,7 @@ class AssetOverviewTab extends BaseTab
      */
     private static function getActiveAssets(WC_Product $product): array
     {
-        $assets = self::getAssets($product);
+        $assets = self::getRepeaterFieldValue('product_assets', $product->get_id());
 
         return array_filter($assets, function($asset) {
             return !empty($asset['asset_enabled']) && !empty($asset['asset_image']);
@@ -209,11 +195,16 @@ class AssetOverviewTab extends BaseTab
 
         foreach ($assets as $asset) {
             if (!empty($asset['asset_label'])) {
-                $formatted_assets[] = [
-                    'label' => $asset['asset_label'],
-                    'image' => $asset['asset_image'],
-                    'slug' => sanitize_title($asset['asset_label']),
-                ];
+                $imageData = self::formatImageData($asset['asset_image']);
+
+                if ($imageData) {
+                    $formatted_assets[] = [
+                        'label' => $asset['asset_label'],
+                        'image' => $asset['asset_image'], // Сохраняем оригинальные данные для совместимости
+                        'image_data' => $imageData, // Новые форматированные данные
+                        'slug' => self::createSlug($asset['asset_label']),
+                    ];
+                }
             }
         }
 
@@ -225,13 +216,13 @@ class AssetOverviewTab extends BaseTab
      */
     private static function getAssetsStats(WC_Product $product): array
     {
-        $assets = self::getAssets($product);
-        $active_assets = self::getActiveAssets($product);
+        $allAssets = self::getRepeaterFieldValue('product_assets', $product->get_id());
+        $activeAssets = self::getActiveAssets($product);
 
         return [
-            'total' => count($assets),
-            'active' => count($active_assets),
-            'has_assets' => count($active_assets) > 0,
+            'total' => count($allAssets),
+            'active' => count($activeAssets),
+            'has_assets' => count($activeAssets) > 0,
         ];
     }
 
@@ -244,8 +235,16 @@ class AssetOverviewTab extends BaseTab
             return false;
         }
 
-        $active_assets = self::getActiveAssets($product);
-        return count($active_assets) > 0;
+        $activeAssets = self::getActiveAssets($product);
+        return count($activeAssets) > 0;
+    }
+
+    /**
+     * Получить описание по умолчанию
+     */
+    private static function getDefaultDescription(): string
+    {
+        return 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.';
     }
 
     // ===== STATIC METHODS FOR HOOKS =====
@@ -277,7 +276,7 @@ class AssetOverviewTab extends BaseTab
             ];
 
             update_field('product_assets', $default_assets, $post_id);
-            update_field('asset_description', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.', $post_id);
+            update_field('asset_description', self::getDefaultDescription(), $post_id);
             update_field('assets_enabled', true, $post_id);
         }
     }

@@ -47,7 +47,7 @@ class ProductChannelsTab extends BaseTab
                 'max' => 20,
                 'layout' => 'block',
                 'button_label' => 'Add Channel',
-                'conditional_logic' => create_acf_conditional_logic(['companies'], 'field_channels_enabled', '1'),
+                'conditional_logic' => create_acf_conditional_logic(['companies']),
                 'sub_fields' => [
                     [
                         'key' => 'field_channel_name',
@@ -110,14 +110,14 @@ class ProductChannelsTab extends BaseTab
             return ['productChannels' => null];
         }
 
+        $stats = self::getChannelsStats($product);
+
         return [
             'productChannels' => [
                 'channels' => $formatted_channels,
-                'total_count' => count($formatted_channels),
-                'included_count' => count(array_filter($formatted_channels, function($channel) {
-                    return $channel['included'];
-                })),
-                'has_channels' => !empty($formatted_channels),
+                'total_count' => $stats['total'],
+                'included_count' => $stats['included'],
+                'has_channels' => $stats['has_channels'],
                 'visible_limit' => 5
             ]
         ];
@@ -147,15 +147,7 @@ class ProductChannelsTab extends BaseTab
      */
     private static function isChannelsEnabled(WC_Product $product): bool
     {
-        return (bool) get_field('channels_enabled', $product->get_id());
-    }
-
-    /**
-     * Получить channels продукта
-     */
-    private static function getChannels(WC_Product $product): array
-    {
-        return get_field('product_channels', $product->get_id()) ?: [];
+        return self::getBooleanFieldValue('channels_enabled', $product->get_id(), true);
     }
 
     /**
@@ -163,7 +155,7 @@ class ProductChannelsTab extends BaseTab
      */
     private static function getFormattedChannels(WC_Product $product): array
     {
-        $channels = self::getChannels($product);
+        $channels = self::getRepeaterFieldValue('product_channels', $product->get_id());
         $formatted_channels = [];
 
         foreach ($channels as $channel) {
@@ -171,7 +163,7 @@ class ProductChannelsTab extends BaseTab
                 $formatted_channels[] = [
                     'name' => $channel['channel_name'],
                     'included' => (bool) ($channel['channel_included'] ?? false),
-                    'slug' => sanitize_title($channel['channel_name'])
+                    'slug' => self::createSlug($channel['channel_name'])
                 ];
             }
         }
@@ -231,6 +223,43 @@ class ProductChannelsTab extends BaseTab
         return count($channels) > 0;
     }
 
+    /**
+     * Получить дефолтные каналы
+     */
+    private static function getDefaultChannels(): array
+    {
+        return [
+            ['channel_name' => 'Web', 'channel_included' => true],
+            ['channel_name' => 'Newsletter', 'channel_included' => false],
+            ['channel_name' => 'Social Media', 'channel_included' => true],
+            ['channel_name' => 'Digital', 'channel_included' => false],
+            ['channel_name' => 'Print', 'channel_included' => false],
+            ['channel_name' => 'OOH', 'channel_included' => false],
+            ['channel_name' => 'POS', 'channel_included' => true],
+            ['channel_name' => 'TV/Radio', 'channel_included' => true],
+        ];
+    }
+
+    /**
+     * Получить базовые каналы
+     */
+    private static function getBasicChannels(): array
+    {
+        return [
+            ['channel_name' => 'Web', 'channel_included' => true],
+            ['channel_name' => 'Social Media', 'channel_included' => true],
+            ['channel_name' => 'POS', 'channel_included' => true],
+        ];
+    }
+
+    /**
+     * Проверить, есть ли данные для отображения
+     */
+    protected static function hasContent(WC_Product $product): bool
+    {
+        return self::hasChannelsContent($product);
+    }
+
     // ===== STATIC METHODS FOR HOOKS =====
 
     /**
@@ -244,18 +273,7 @@ class ProductChannelsTab extends BaseTab
 
         // Только для новых продуктов
         if (get_post_status($post_id) === 'auto-draft' && !get_field('product_channels', $post_id)) {
-            $default_channels = [
-                ['channel_name' => 'Web', 'channel_included' => true],
-                ['channel_name' => 'Newsletter', 'channel_included' => false],
-                ['channel_name' => 'Social Media', 'channel_included' => true],
-                ['channel_name' => 'Digital', 'channel_included' => false],
-                ['channel_name' => 'Print', 'channel_included' => false],
-                ['channel_name' => 'OOH', 'channel_included' => false],
-                ['channel_name' => 'POS', 'channel_included' => true],
-                ['channel_name' => 'TV/Radio', 'channel_included' => true],
-            ];
-
-            update_field('product_channels', $default_channels, $post_id);
+            update_field('product_channels', self::getDefaultChannels(), $post_id);
             update_field('channels_enabled', true, $post_id);
         }
     }
@@ -273,13 +291,7 @@ class ProductChannelsTab extends BaseTab
 
         // Если нет channels, добавляем базовые
         if (empty($channels)) {
-            $basic_channels = [
-                ['channel_name' => 'Web', 'channel_included' => true],
-                ['channel_name' => 'Social Media', 'channel_included' => true],
-                ['channel_name' => 'POS', 'channel_included' => true],
-            ];
-
-            update_field('product_channels', $basic_channels, $post_id);
+            update_field('product_channels', self::getBasicChannels(), $post_id);
         }
     }
 
@@ -288,17 +300,17 @@ class ProductChannelsTab extends BaseTab
     /**
      * Проверить, активен ли канал для продукта
      */
-    public static function isChannelActive($product_id, $channel_name): bool
+    public static function isChannelActive(int $product_id, string $channel_name): bool
     {
         $product = wc_get_product($product_id);
         if (!$product) {
             return false;
         }
 
-        $channels = self::getChannels($product);
+        $channels = self::getRepeaterFieldValue('product_channels', $product_id);
 
         foreach ($channels as $channel) {
-            if (strtolower($channel['channel_name']) === strtolower($channel_name)) {
+            if (strtolower($channel['channel_name'] ?? '') === strtolower($channel_name)) {
                 return !empty($channel['channel_included']);
             }
         }
@@ -309,14 +321,14 @@ class ProductChannelsTab extends BaseTab
     /**
      * Получить только активные каналы продукта
      */
-    public static function getActiveChannels($product_id): array
+    public static function getActiveChannels(int $product_id): array
     {
         $product = wc_get_product($product_id);
         if (!$product) {
             return [];
         }
 
-        $channels = self::getChannels($product);
+        $channels = self::getRepeaterFieldValue('product_channels', $product_id);
 
         return array_filter($channels, function($channel) {
             return !empty($channel['channel_included']);
@@ -326,18 +338,13 @@ class ProductChannelsTab extends BaseTab
     /**
      * Получить список названий каналов через запятую
      */
-    public static function getChannelsList($product_id, $active_only = true, $separator = ', '): string
+    public static function getChannelsList(int $product_id, bool $active_only = true, string $separator = ', '): string
     {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return '';
-        }
-
         $channels = $active_only
             ? self::getActiveChannels($product_id)
-            : self::getChannels($product);
+            : self::getRepeaterFieldValue('product_channels', $product_id);
 
-        $names = array_column($channels, 'channel_name');
+        $names = array_filter(array_column($channels, 'channel_name'));
 
         return implode($separator, $names);
     }

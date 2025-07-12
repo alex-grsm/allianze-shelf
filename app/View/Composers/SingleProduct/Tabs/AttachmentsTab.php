@@ -110,9 +110,11 @@ class AttachmentsTab extends BaseTab
             return null;
         }
 
+        $productId = $product->get_id();
+
         return [
-            'attachments_enabled' => self::isAttachmentsEnabled($product),
-            'attachments_description' => self::getAttachmentsDescription($product),
+            'attachments_enabled' => self::getBooleanFieldValue('attachments_enabled', $productId, true),
+            'attachments_description' => self::getFieldValue('attachments_description', $productId, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.'),
             'attachments' => self::getFormattedAttachments($product),
             'attachments_stats' => self::getAttachmentsStats($product),
             'has_attachments_content' => self::hasAttachmentsContent($product),
@@ -124,7 +126,8 @@ class AttachmentsTab extends BaseTab
      */
     public static function getTemplateData(WC_Product $product): ?array
     {
-        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page']) || !self::isAttachmentsEnabled($product)) {
+        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter', 'landing_page'])
+            || !self::getBooleanFieldValue('attachments_enabled', $product->get_id(), true)) {
             return ['attachments' => null];
         }
 
@@ -136,7 +139,7 @@ class AttachmentsTab extends BaseTab
 
         return [
             'attachments' => [
-                'description' => self::getAttachmentsDescription($product),
+                'description' => self::getFieldValue('attachments_description', $product->get_id(), 'Lorem ipsum dolor sit amet...'),
                 'attachments' => $formatted_attachments,
                 'total_count' => count($formatted_attachments),
                 'has_attachments' => !empty($formatted_attachments),
@@ -164,35 +167,11 @@ class AttachmentsTab extends BaseTab
     // ===== PRIVATE METHODS =====
 
     /**
-     * Проверить, включены ли attachments для продукта
-     */
-    private static function isAttachmentsEnabled(WC_Product $product): bool
-    {
-        return (bool) get_field('attachments_enabled', $product->get_id());
-    }
-
-    /**
-     * Получить описание attachments
-     */
-    private static function getAttachmentsDescription(WC_Product $product): string
-    {
-        return get_field('attachments_description', $product->get_id()) ?: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.';
-    }
-
-    /**
-     * Получить attachments продукта
-     */
-    private static function getAttachments(WC_Product $product): array
-    {
-        return get_field('product_attachments', $product->get_id()) ?: [];
-    }
-
-    /**
      * Получить только активные attachments с файлами
      */
     private static function getActiveAttachments(WC_Product $product): array
     {
-        $attachments = self::getAttachments($product);
+        $attachments = self::getRepeaterFieldValue('product_attachments', $product->get_id());
 
         return array_filter($attachments, function($attachment) {
             return !empty($attachment['attachment_enabled']) && !empty($attachment['attachment_file']);
@@ -209,13 +188,16 @@ class AttachmentsTab extends BaseTab
 
         foreach ($attachments as $attachment) {
             if (!empty($attachment['attachment_label'])) {
-                $formatted_attachments[] = [
-                    'label' => $attachment['attachment_label'],
-                    'file' => $attachment['attachment_file'],
-                    'slug' => sanitize_title($attachment['attachment_label']),
-                    'file_size' => self::formatFileSize($attachment['attachment_file']['filesize'] ?? 0),
-                    'file_extension' => strtoupper(pathinfo($attachment['attachment_file']['filename'] ?? '', PATHINFO_EXTENSION)),
-                ];
+                $fileData = self::formatFileData($attachment['attachment_file']);
+
+                if ($fileData) {
+                    $formatted_attachments[] = [
+                        'label' => $attachment['attachment_label'],
+                        'file' => $attachment['attachment_file'], // Сохраняем оригинальные данные для совместимости
+                        'file_data' => $fileData, // Новые форматированные данные
+                        'slug' => self::createSlug($attachment['attachment_label']),
+                    ];
+                }
             }
         }
 
@@ -227,13 +209,13 @@ class AttachmentsTab extends BaseTab
      */
     private static function getAttachmentsStats(WC_Product $product): array
     {
-        $attachments = self::getAttachments($product);
-        $active_attachments = self::getActiveAttachments($product);
+        $allAttachments = self::getRepeaterFieldValue('product_attachments', $product->get_id());
+        $activeAttachments = self::getActiveAttachments($product);
 
         return [
-            'total' => count($attachments),
-            'active' => count($active_attachments),
-            'has_attachments' => count($active_attachments) > 0,
+            'total' => count($allAttachments),
+            'active' => count($activeAttachments),
+            'has_attachments' => count($activeAttachments) > 0,
         ];
     }
 
@@ -242,26 +224,12 @@ class AttachmentsTab extends BaseTab
      */
     private static function hasAttachmentsContent(WC_Product $product): bool
     {
-        if (!self::isAttachmentsEnabled($product)) {
+        if (!self::getBooleanFieldValue('attachments_enabled', $product->get_id(), true)) {
             return false;
         }
 
-        $active_attachments = self::getActiveAttachments($product);
-        return count($active_attachments) > 0;
-    }
-
-    /**
-     * Форматировать размер файла в человекочитаемом формате
-     */
-    private static function formatFileSize($bytes): string
-    {
-        if ($bytes == 0) return '0 B';
-
-        $k = 1024;
-        $sizes = ['B', 'KB', 'MB', 'GB'];
-        $i = floor(log($bytes) / log($k));
-
-        return round($bytes / pow($k, $i), 1) . ' ' . $sizes[$i];
+        $activeAttachments = self::getActiveAttachments($product);
+        return count($activeAttachments) > 0;
     }
 
     // ===== STATIC METHODS FOR HOOKS =====
