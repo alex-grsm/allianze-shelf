@@ -14,6 +14,7 @@ use App\View\Composers\SingleProduct\Tabs\ProductLinksTab;
 use App\View\Composers\SingleProduct\Tabs\AttachmentsTab;
 use App\View\Composers\SingleProduct\Tabs\SocialMediaAssetsInfoTab;
 use App\View\Composers\SingleProduct\Tabs\NewsletterInformationTab;
+use App\View\Composers\SingleProduct\Tabs\LandingPageInformationTab;
 
 class ProductAcfFields extends Composer
 {
@@ -34,6 +35,7 @@ class ProductAcfFields extends Composer
         CompaniesInfoTab::class,
         SocialMediaAssetsInfoTab::class,
         NewsletterInformationTab::class,
+        LandingPageInformationTab::class,
         BuyoutDetailsTab::class,
         AssetOverviewTab::class,
         ProductChannelsTab::class,
@@ -68,6 +70,16 @@ class ProductAcfFields extends Composer
      */
     private static $newsletterTabsOrder = [
         NewsletterInformationTab::class,
+        BuyoutDetailsTab::class,
+        ProductLinksTab::class,
+        AttachmentsTab::class,
+    ];
+
+    /**
+     * Порядок табов для типа Landing Page
+     */
+    private static $landingPageTabsOrder = [
+        LandingPageInformationTab::class,
         BuyoutDetailsTab::class,
         ProductLinksTab::class,
         AttachmentsTab::class,
@@ -145,6 +157,7 @@ class ProductAcfFields extends Composer
         return match ($productType) {
             'social_media_assets' => self::$socialMediaTabsOrder,
             'newsletter' => self::$newsletterTabsOrder,
+            'landing_page' => self::$landingPageTabsOrder,
             'companies' => self::$companiesTabsOrder,
             default => self::$companiesTabsOrder,
         };
@@ -194,6 +207,7 @@ class ProductAcfFields extends Composer
             CompaniesInfoTab::class => $productType === 'companies',
             SocialMediaAssetsInfoTab::class => $productType === 'social_media_assets',
             NewsletterInformationTab::class => $productType === 'newsletter',
+            LandingPageInformationTab::class => $productType === 'landing_page',
             default => true, // Остальные табы видны для всех типов
         };
     }
@@ -207,6 +221,7 @@ class ProductAcfFields extends Composer
             CompaniesInfoTab::class => 'companies_info',
             SocialMediaAssetsInfoTab::class => 'social_media_assets_info',
             NewsletterInformationTab::class => 'newsletter_info',
+            LandingPageInformationTab::class => 'landing_page_info',
             BuyoutDetailsTab::class => 'buyout_details',
             AssetOverviewTab::class => 'asset_overview',
             ProductChannelsTab::class => 'product_channels',
@@ -238,6 +253,7 @@ class ProductAcfFields extends Composer
                         'companies' => 'Companies',
                         'social_media_assets' => 'Social Media Assets',
                         'newsletter' => 'Newsletter',
+                        'landing_page' => 'Landing Page',
                     ],
                     'default_value' => 'companies',
                     'allow_null' => 0,

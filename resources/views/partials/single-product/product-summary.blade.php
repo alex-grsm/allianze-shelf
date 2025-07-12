@@ -14,10 +14,12 @@
                     <!-- Демо изображение с картонными фигурками -->
                     <div class="w-full h-full flex items-center justify-center">
 
-                      <div class="w-full">
-                        {{-- Галерея продукта --}}
-                        @include('partials.single-product.product-gallery', ['productSummary' => $productSummary])
-                      </div>
+                        <div class="w-full">
+                            {{-- Галерея продукта --}}
+                            @include('partials.single-product.product-gallery', [
+                                'productSummary' => $productSummary,
+                            ])
+                        </div>
 
                     </div>
                 </div>
@@ -30,16 +32,22 @@
                 <div class="flex mb-7">
                     {{-- Блок с флагом страны (только если данные доступны) --}}
                     @php
-                        $flagUrl = $productAcfFields['country_flag_url'] ?? $productAcfFields['sma_country_flag_url'] ?? $productAcfFields['newsletter_country_flag_url'] ?? '';
-                        $countryCode = $productAcfFields['country_code'] ?? $productAcfFields['sma_country_code'] ?? $productAcfFields['newsletter_country_code'] ?? '';
+                        $flagUrl =
+                            $productAcfFields['country_flag_url'] ??
+                            ($productAcfFields['sma_country_flag_url'] ??
+                                ($productAcfFields['newsletter_country_flag_url'] ??
+                                    ($productAcfFields['landing_page_country_flag_url'] ?? '')));
+                        $countryCode =
+                            $productAcfFields['country_code'] ??
+                            ($productAcfFields['sma_country_code'] ??
+                                ($productAcfFields['newsletter_country_code'] ??
+                                    ($productAcfFields['landing_page_country_code'] ?? '')));
                     @endphp
-                    @if(!empty($flagUrl) && !empty($countryCode))
+                    @if (!empty($flagUrl) && !empty($countryCode))
                         <div class="flex items-start flex-col gap-2 pr-8">
                             <span class="text-blue-600 text-xs font-bold">Origin OE</span>
                             <span class="rounded-full overflow-hidden flex">
-                                <img src="{{ $flagUrl }}"
-                                    alt="{{ $countryCode }}"
-                                    class="size-6.5 object-cover">
+                                <img src="{{ $flagUrl }}" alt="{{ $countryCode }}" class="size-6.5 object-cover">
                             </span>
                         </div>
 
@@ -51,14 +59,20 @@
                     <div class="flex items-start flex-col gap-2 px-8">
                         <span class="text-blue-600 text-xs font-bold">Content type</span>
                         <span class="text-blue-600">
-                            @if(isset($productAcfFields['product_type']))
+                            @if (isset($productAcfFields['product_type']))
                                 @switch($productAcfFields['product_type'])
                                     @case('newsletter')
                                         Newsletter campaign
-                                        @break
+                                    @break
+
                                     @case('social_media_assets')
                                         Social Media campaign
-                                        @break
+                                    @break
+
+                                    @case('landing_page')
+                                        Landing Page campaign
+                                    @break
+
                                     @default
                                         Brand campaign
                                 @endswitch
@@ -75,14 +89,20 @@
                     <div class="flex items-start flex-col gap-2 px-8">
                         <span class="text-blue-600 text-xs font-bold">Product</span>
                         <span class="text-blue-600">
-                            @if(isset($productAcfFields['product_type']))
+                            @if (isset($productAcfFields['product_type']))
                                 @switch($productAcfFields['product_type'])
                                     @case('newsletter')
                                         Newsletter
-                                        @break
+                                    @break
+
                                     @case('social_media_assets')
                                         Social Media
-                                        @break
+                                    @break
+
+                                    @case('landing_page')
+                                        Landing Page campaign
+                                    @break
+
                                     @default
                                         Car
                                 @endswitch
@@ -114,13 +134,9 @@
                 <!-- Цены и покупка -->
                 <div class="mb-4">
                     <!-- Доступность и форма покупки -->
-                    <div class="space-y-4"
-                         x-data="cartHandler({{ json_encode($productSummary['variations'] ?? []) }})"
-                         data-product-cart
-                         data-product-id="{{ $productSummary['id'] }}"
-                         data-nonce="{{ wp_create_nonce('add_to_cart') }}"
-                         data-ajax-url="{{ admin_url('admin-ajax.php') }}"
-                    >
+                    <div class="space-y-4" x-data="cartHandler({{ json_encode($productSummary['variations'] ?? []) }})" data-product-cart
+                        data-product-id="{{ $productSummary['id'] }}" data-nonce="{{ wp_create_nonce('add_to_cart') }}"
+                        data-ajax-url="{{ admin_url('admin-ajax.php') }}">
                         {{-- Локальные уведомления для вариаций --}}
                         <x-local-alert />
 
@@ -128,11 +144,10 @@
                             <div class="flex flex-col">
                                 <div class="flex gap-5 mb-4">
                                     @foreach ($productSummary['variations'] as $variation)
-                                        <div
-                                            class="border-2 rounded-lg px-5 py-4 flex flex-col justify-between cursor-pointer transition-colors max-w-56"
-                                            :class="selectedVariation === {{ $variation['id'] }} ? 'border-blue-600' : 'border-[#e9e5e5]'"
-                                            @click="selectVariation({{ $variation['id'] }})"
-                                        >
+                                        <div class="border-2 rounded-lg px-5 py-4 flex flex-col justify-between cursor-pointer transition-colors max-w-56"
+                                            :class="selectedVariation === {{ $variation['id'] }} ? 'border-blue-600' :
+                                                'border-[#e9e5e5]'"
+                                            @click="selectVariation({{ $variation['id'] }})">
                                             <div class="font-bold mb-1 text-xs">Compensation Costs</div>
                                             <div class="text-xs mb-3">
                                                 @foreach ($variation['raw_attributes'] as $attribute_name => $attribute_value)
@@ -150,9 +165,13 @@
 
                                 {{-- Блок с датой действия прав (только если поле доступно) --}}
                                 @php
-                                    $rightsUntilFormatted = $productAcfFields['rights_until_formatted'] ?? $productAcfFields['sma_rights_until_formatted'] ?? $productAcfFields['newsletter_rights_until_formatted'] ?? '';
+                                    $rightsUntilFormatted =
+                                        $productAcfFields['rights_until_formatted'] ??
+                                        ($productAcfFields['sma_rights_until_formatted'] ??
+                                            ($productAcfFields['newsletter_rights_until_formatted'] ??
+                                                ($productAcfFields['landing_page_until_formatted'] ?? '')));
                                 @endphp
-                                @if(!empty($rightsUntilFormatted))
+                                @if (!empty($rightsUntilFormatted))
                                     <div class="mb-8">
                                         <div class="text-xs mb-1 font-bold">Rights available until</div>
                                         <div>{{ $rightsUntilFormatted }}</div>
@@ -160,45 +179,40 @@
                                 @endif
 
                                 <div class="flex items-center gap-4">
-                                  <button
-                                      type="button"
-                                      @click="addToCart()"
-                                      :disabled="loading || !selectedVariation"
-                                      :class="loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-800'"
-                                      class="flex-1 bg-blue-600 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none">
-                                      <span x-show="!loading">Add to cart</span>
-                                      <span x-show="loading" class="flex items-center justify-center gap-2">
-                                          <x-svg-icon name="loader" class="animate-spin w-5 h-5" />
-                                          Loading...
-                                      </span>
-                                  </button>
-                                  <a href="{{ get_permalink(get_page_by_path('contact')) }}"
-                                      target="_blank"
-                                      class="!no-underline flex-1 bg-blue-600 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none">
-                                      <span class="flex items-center justify-center gap-2">
-                                          Submit cost request
-                                      </span>
-                                  </a>
+                                    <button type="button" @click="addToCart()"
+                                        :disabled="loading || !selectedVariation"
+                                        :class="loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-800'"
+                                        class="flex-1 bg-blue-600 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none">
+                                        <span x-show="!loading">Add to cart</span>
+                                        <span x-show="loading" class="flex items-center justify-center gap-2">
+                                            <x-svg-icon name="loader" class="animate-spin w-5 h-5" />
+                                            Loading...
+                                        </span>
+                                    </button>
+                                    <a href="{{ get_permalink(get_page_by_path('contact')) }}" target="_blank"
+                                        class="!no-underline flex-1 bg-blue-600 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none">
+                                        <span class="flex items-center justify-center gap-2">
+                                            Submit cost request
+                                        </span>
+                                    </a>
 
-                                  <button @click="toggleWishlist()"
-                                          x-bind:class="isInWishlist ? 'border-red-300 bg-red-50' : 'border-gray-300'"
-                                          class="p-4 rounded-full border hover:border-gray-400 transition-colors">
-                                      <span class="transition-transform duration-200">
-                                          <x-svg-icon name="heart" x-show="!isInWishlist" />
-                                          <x-svg-icon name="heart-red" x-show="isInWishlist" />
-                                      </span>
-                                  </button>
+                                    <button @click="toggleWishlist()"
+                                        x-bind:class="isInWishlist ? 'border-red-300 bg-red-50' : 'border-gray-300'"
+                                        class="p-4 rounded-full border hover:border-gray-400 transition-colors">
+                                        <span class="transition-transform duration-200">
+                                            <x-svg-icon name="heart" x-show="!isInWishlist" />
+                                            <x-svg-icon name="heart-red" x-show="isInWishlist" />
+                                        </span>
+                                    </button>
 
-                                  <button @click="shareProduct()"
-                                          class="p-4 rounded-full border border-gray-300 hover:border-gray-400 transition-colors">
-                                      <x-svg-icon name="share" class="transition-transform duration-200" />
-                                  </button>
+                                    <button @click="shareProduct()"
+                                        class="p-4 rounded-full border border-gray-300 hover:border-gray-400 transition-colors">
+                                        <x-svg-icon name="share" class="transition-transform duration-200" />
+                                    </button>
                                 </div>
                             </div>
                         @else
-                            <button
-                                type="button"
-                                @click="addToCart({{ $productSummary['id'] }})"
+                            <button type="button" @click="addToCart({{ $productSummary['id'] }})"
                                 :disabled="loading"
                                 :class="loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-800'"
                                 class="flex-1 bg-blue-600 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none">
