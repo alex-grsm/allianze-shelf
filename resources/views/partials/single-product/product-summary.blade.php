@@ -29,12 +29,16 @@
                 <!-- Мета информация -->
                 <div class="flex mb-7">
                     {{-- Блок с флагом страны (только если данные доступны) --}}
-                    @if(!empty($productAcfFields['country_flag_url']) && !empty($productAcfFields['country_code']))
+                    @php
+                        $flagUrl = $productAcfFields['country_flag_url'] ?? $productAcfFields['sma_country_flag_url'] ?? $productAcfFields['newsletter_country_flag_url'] ?? '';
+                        $countryCode = $productAcfFields['country_code'] ?? $productAcfFields['sma_country_code'] ?? $productAcfFields['newsletter_country_code'] ?? '';
+                    @endphp
+                    @if(!empty($flagUrl) && !empty($countryCode))
                         <div class="flex items-start flex-col gap-2 pr-8">
                             <span class="text-blue-600 text-xs font-bold">Origin OE</span>
                             <span class="rounded-full overflow-hidden flex">
-                                <img src="{{ $productAcfFields['country_flag_url'] }}"
-                                    alt="{{ $productAcfFields['country_code'] }}"
+                                <img src="{{ $flagUrl }}"
+                                    alt="{{ $countryCode }}"
                                     class="size-6.5 object-cover">
                             </span>
                         </div>
@@ -47,7 +51,20 @@
                     <div class="flex items-start flex-col gap-2 px-8">
                         <span class="text-blue-600 text-xs font-bold">Content type</span>
                         <span class="text-blue-600">
-                            Brand campaign
+                            @if(isset($productAcfFields['product_type']))
+                                @switch($productAcfFields['product_type'])
+                                    @case('newsletter')
+                                        Newsletter campaign
+                                        @break
+                                    @case('social_media_assets')
+                                        Social Media campaign
+                                        @break
+                                    @default
+                                        Brand campaign
+                                @endswitch
+                            @else
+                                Brand campaign
+                            @endif
                         </span>
                     </div>
 
@@ -58,7 +75,20 @@
                     <div class="flex items-start flex-col gap-2 px-8">
                         <span class="text-blue-600 text-xs font-bold">Product</span>
                         <span class="text-blue-600">
-                            Car
+                            @if(isset($productAcfFields['product_type']))
+                                @switch($productAcfFields['product_type'])
+                                    @case('newsletter')
+                                        Newsletter
+                                        @break
+                                    @case('social_media_assets')
+                                        Social Media
+                                        @break
+                                    @default
+                                        Car
+                                @endswitch
+                            @else
+                                Car
+                            @endif
                         </span>
                     </div>
                 </div>
@@ -119,10 +149,13 @@
                                 </div>
 
                                 {{-- Блок с датой действия прав (только если поле доступно) --}}
-                                @if(!empty($productAcfFields['rights_until_formatted']))
+                                @php
+                                    $rightsUntilFormatted = $productAcfFields['rights_until_formatted'] ?? $productAcfFields['sma_rights_until_formatted'] ?? $productAcfFields['newsletter_rights_until_formatted'] ?? '';
+                                @endphp
+                                @if(!empty($rightsUntilFormatted))
                                     <div class="mb-8">
                                         <div class="text-xs mb-1 font-bold">Rights available until</div>
-                                        <div>{{ $productAcfFields['rights_until_formatted'] }}</div>
+                                        <div>{{ $rightsUntilFormatted }}</div>
                                     </div>
                                 @endif
 

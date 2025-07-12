@@ -19,7 +19,7 @@ class BuyoutDetailsTab extends BaseTab
                 'type' => 'tab',
                 'placement' => 'top',
                 'endpoint' => 0,
-                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets']),
+                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter']),
             ],
             [
                 'key' => 'field_buyout_enabled',
@@ -33,7 +33,7 @@ class BuyoutDetailsTab extends BaseTab
                 'ui' => 1,
                 'ui_on_text' => 'Yes',
                 'ui_off_text' => 'No',
-                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets']),
+                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter']),
             ],
             [
                 'key' => 'field_buyout_description',
@@ -45,7 +45,7 @@ class BuyoutDetailsTab extends BaseTab
                 'rows' => 4,
                 'placeholder' => 'Enter buyout details description...',
                 'maxlength' => 500,
-                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets'], 'field_buyout_enabled', '1'),
+                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter'], 'field_buyout_enabled', '1'),
             ],
             [
                 'key' => 'field_buyout_table_image',
@@ -58,7 +58,7 @@ class BuyoutDetailsTab extends BaseTab
                 'preview_size' => 'medium',
                 'library' => 'all',
                 'mime_types' => 'png,jpg,jpeg',
-                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets'], 'field_buyout_enabled', '1'),
+                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter'], 'field_buyout_enabled', '1'),
             ],
         ];
     }
@@ -68,7 +68,7 @@ class BuyoutDetailsTab extends BaseTab
      */
     public static function getDataForProduct(WC_Product $product): ?array
     {
-        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets'])) {
+        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter'])) {
             return null;
         }
 
@@ -148,7 +148,7 @@ class BuyoutDetailsTab extends BaseTab
     private static function getBuyoutDetailsForTemplate(WC_Product $product): ?array
     {
         // Проверяем, включены ли buyout детали и тип продукта
-        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets']) || !self::isBuyoutEnabled($product)) {
+        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter']) || !self::isBuyoutEnabled($product)) {
             return null;
         }
 

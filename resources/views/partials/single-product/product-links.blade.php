@@ -3,7 +3,7 @@
 @if (
     !empty($productLinks['has_links']) &&
     isset($productAcfFields['product_type']) &&
-    in_array($productAcfFields['product_type'], ['companies', 'social_media_assets'])
+    in_array($productAcfFields['product_type'], ['companies', 'social_media_assets', 'newsletter'])
 )
 <section class="product-links-section py-20">
   <div class="container">
