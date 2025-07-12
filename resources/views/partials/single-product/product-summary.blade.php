@@ -30,30 +30,39 @@
 
                 <!-- Мета информация -->
                 <div class="flex mb-7">
-                    {{-- Блок с флагом страны (только если данные доступны) --}}
+                    {{-- Блок с флагом страны (всегда показываем, но используем fallback если флаг отсутствует) --}}
                     @php
                         $flagUrl =
                             $productAcfFields['country_flag_url'] ??
                             ($productAcfFields['sma_country_flag_url'] ??
                                 ($productAcfFields['newsletter_country_flag_url'] ??
                                     ($productAcfFields['landing_page_country_flag_url'] ?? '')));
+
                         $countryCode =
                             $productAcfFields['country_code'] ??
                             ($productAcfFields['sma_country_code'] ??
                                 ($productAcfFields['newsletter_country_code'] ??
                                     ($productAcfFields['landing_page_country_code'] ?? '')));
-                    @endphp
-                    @if (!empty($flagUrl) && !empty($countryCode))
-                        <div class="flex items-start flex-col gap-2 pr-8">
-                            <span class="text-blue-600 text-xs font-bold">Origin OE</span>
-                            <span class="rounded-full overflow-hidden flex">
-                                <img src="{{ $flagUrl }}" alt="{{ $countryCode }}" class="size-6.5 object-cover">
-                            </span>
-                        </div>
 
-                        <!-- Разделитель -->
-                        <div class="h-12 w-px bg-[#d3d3d3]"></div>
-                    @endif
+                        // Используем default флаг если конкретный флаг недоступен
+                        $displayFlag = !empty($flagUrl) ? $flagUrl : asset('resources/images/icons/flag.svg');
+                        $displayAlt = !empty($countryCode) ? $countryCode : 'Default flag';
+                    @endphp
+
+                    <div class="flex items-start flex-col gap-2 pr-8">
+                        <span class="text-blue-600 text-xs font-bold">Origin OE</span>
+                        <span class="rounded-full overflow-hidden flex">
+                            @if (!empty($flagUrl))
+                                <img src="{{ $flagUrl }}" alt="{{ $countryCode }}" class="size-6.5 object-cover">
+                            @else
+                                <img src="{{ asset('resources/images/icons/flag.svg') }}" alt="Default flag"
+                                    class="size-6.5 object-cover">
+                            @endif
+                        </span>
+                    </div>
+
+                    <!-- Разделитель -->
+                    <div class="h-12 w-px bg-[#d3d3d3]"></div>
 
                     <!-- Content type -->
                     <div class="flex items-start flex-col gap-2 px-8">

@@ -24,14 +24,14 @@
                 }
 
                 // Определяем URL изображения с fallback'ами
-                $imageUrl = '';
-                if ($displayImage) {
-                    // Приоритет размеров для карточки товара
-                    $imageUrl = $displayImage['large']['url'] ?? ($displayImage['full']['url'] ?? '');
-                }
+$imageUrl = '';
+if ($displayImage) {
+    // Приоритет размеров для карточки товара
+    $imageUrl = $displayImage['large']['url'] ?? ($displayImage['full']['url'] ?? '');
+}
 
-                // Alt текст
-                $altText = $displayImage['alt'] ?? ($productSummary['title'] ?? 'Product image');
+// Alt текст
+$altText = $displayImage['alt'] ?? ($productSummary['title'] ?? 'Product image');
             @endphp
 
             @if ($imageUrl)
@@ -53,14 +53,12 @@
                 !empty($productAcfFields['label']) ||
                     !empty($productAcfFields['sma_label']) ||
                     !empty($productAcfFields['newsletter_label']) ||
-                    !empty($productAcfFields['landing_page_label'])
-            )
+                    !empty($productAcfFields['landing_page_label']))
                 @php
                     $label =
                         $productAcfFields['label'] ??
-                        ($productAcfFields['sma_label'] ?? 
-                        ($productAcfFields['newsletter_label'] ?? 
-                        ($productAcfFields['landing_page_label'] ?? '')));
+                        ($productAcfFields['sma_label'] ??
+                            ($productAcfFields['newsletter_label'] ?? ($productAcfFields['landing_page_label'] ?? '')));
                     $labelColor = $label === 'easy_adaptable' ? 'bg-[#7700ff]' : 'bg-[#f62459]';
                 @endphp
                 <span
@@ -69,31 +67,28 @@
                 </span>
             @endif
 
-            {{-- Флаг страны (только если данные доступны) --}}
-            @if (
-                !empty($productAcfFields['country_flag_url']) ||
-                    !empty($productAcfFields['sma_country_flag_url']) ||
-                    !empty($productAcfFields['newsletter_country_flag_url']) ||
-                    !empty($productAcfFields['landing_page_country_flag_url'])
-            )
-                @php
-                    $flagUrl =
-                        $productAcfFields['country_flag_url'] ??
-                        ($productAcfFields['sma_country_flag_url'] ??
+            {{-- Флаг страны (всегда показываем с fallback) --}}
+            @php
+                $flagUrl =
+                    $productAcfFields['country_flag_url'] ??
+                    ($productAcfFields['sma_country_flag_url'] ??
                         ($productAcfFields['newsletter_country_flag_url'] ??
-                        ($productAcfFields['landing_page_country_flag_url'] ?? '')));
-                    $countryCode =
-                        $productAcfFields['country_code'] ??
-                        ($productAcfFields['sma_country_code'] ?? 
-                        ($productAcfFields['newsletter_country_code'] ?? 
-                        ($productAcfFields['landing_page_country_code'] ?? '')));
-                @endphp
-                @if (!empty($flagUrl) && !empty($countryCode))
-                    <span class="absolute bottom-3 left-3 rounded-full overflow-hidden">
-                        <img src="{{ $flagUrl }}" alt="{{ $countryCode }}" class="size-6.5 object-cover">
-                    </span>
-                @endif
-            @endif
+                            ($productAcfFields['landing_page_country_flag_url'] ?? '')));
+
+                $countryCode =
+                    $productAcfFields['country_code'] ??
+                    ($productAcfFields['sma_country_code'] ??
+                        ($productAcfFields['newsletter_country_code'] ??
+                            ($productAcfFields['landing_page_country_code'] ?? '')));
+
+                // Используем default флаг если конкретный флаг недоступен
+                $displayFlag = !empty($flagUrl) ? $flagUrl : asset('resources/images/icons/flag.svg');
+                $displayAlt = !empty($countryCode) ? $countryCode : 'Default flag';
+            @endphp
+
+            <span class="absolute bottom-3 left-3 rounded-full overflow-hidden">
+                <img src="{{ $displayFlag }}" alt="{{ $displayAlt }}" class="size-6.5 object-cover">
+            </span>
         </div>
 
         <div class="pt-2.5 pb-4 px-3 flex flex-col flex-1">
@@ -104,9 +99,9 @@
                 @php
                     $target =
                         $productAcfFields['target'] ??
-                        ($productAcfFields['sma_target'] ?? 
-                        ($productAcfFields['newsletter_target'] ?? 
-                        ($productAcfFields['landing_page_target'] ?? '')));
+                        ($productAcfFields['sma_target'] ??
+                            ($productAcfFields['newsletter_target'] ??
+                                ($productAcfFields['landing_page_target'] ?? '')));
                 @endphp
                 @if (!empty($target))
                     <p><span class="font-bold">Target:</span> {{ $target }}</p>
@@ -116,14 +111,13 @@
                 @php
                     $year =
                         $productAcfFields['year'] ??
-                        ($productAcfFields['sma_year'] ?? 
-                        ($productAcfFields['newsletter_year'] ?? 
-                        ($productAcfFields['landing_page_year'] ?? '')));
+                        ($productAcfFields['sma_year'] ??
+                            ($productAcfFields['newsletter_year'] ?? ($productAcfFields['landing_page_year'] ?? '')));
                     $buyout =
                         $productAcfFields['buyout'] ??
-                        ($productAcfFields['sma_buyout'] ?? 
-                        ($productAcfFields['newsletter_buyout'] ?? 
-                        ($productAcfFields['landing_page_buyout'] ?? '')));
+                        ($productAcfFields['sma_buyout'] ??
+                            ($productAcfFields['newsletter_buyout'] ??
+                                ($productAcfFields['landing_page_buyout'] ?? '')));
                 @endphp
                 @if (!empty($year) || !empty($buyout))
                     <p>
