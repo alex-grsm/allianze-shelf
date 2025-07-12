@@ -19,7 +19,7 @@ class ProductLinksTab extends BaseTab
                 'type' => 'tab',
                 'placement' => 'top',
                 'endpoint' => 0,
-                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets']),
+                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter']),
             ],
             [
                 'key' => 'field_links_enabled',
@@ -33,7 +33,7 @@ class ProductLinksTab extends BaseTab
                 'ui' => 1,
                 'ui_on_text' => 'Yes',
                 'ui_off_text' => 'No',
-                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets']),
+                'conditional_logic' => self::getConditionalLogicForProductTypes(['companies', 'social_media_assets', 'newsletter']),
             ],
             [
                 'key' => 'field_links_description',
@@ -44,7 +44,7 @@ class ProductLinksTab extends BaseTab
                 'required' => 0,
                 'placeholder' => 'The following links give you access to...',
                 'maxlength' => 200,
-                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets'], 'field_links_enabled', '1'),
+                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter'], 'field_links_enabled', '1'),
             ],
             [
                 'key' => 'field_product_links',
@@ -58,7 +58,7 @@ class ProductLinksTab extends BaseTab
                 'max' => 12,
                 'layout' => 'block',
                 'button_label' => 'Add Link',
-                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets'], 'field_links_enabled', '1'),
+                'conditional_logic' => self::getConditionalLogicForProductTypesAndField(['companies', 'social_media_assets', 'newsletter'], 'field_links_enabled', '1'),
                 'sub_fields' => [
                     [
                         'key' => 'field_link_title',
@@ -140,7 +140,7 @@ class ProductLinksTab extends BaseTab
      */
     public static function getDataForProduct(WC_Product $product): ?array
     {
-        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets'])) {
+        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter'])) {
             return null;
         }
 
@@ -281,7 +281,7 @@ class ProductLinksTab extends BaseTab
     private static function getLinksForTemplate(WC_Product $product): ?array
     {
         // Проверяем, включены ли ссылки и тип продукта
-        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets']) || !self::isLinksEnabled($product)) {
+        if (!self::isEnabledForProductType($product, ['companies', 'social_media_assets', 'newsletter']) || !self::isLinksEnabled($product)) {
             return null;
         }
 

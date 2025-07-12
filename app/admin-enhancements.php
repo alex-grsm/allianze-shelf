@@ -330,6 +330,14 @@ add_action('admin_enqueue_scripts', function($hook) {
                 order: -1;
             }
 
+            .product-type-field .acf-button-group label[data-value="newsletter"]::after {
+                content: "📧";
+                display: block;
+                font-size: 18px;
+                margin-bottom: 4px;
+                order: -1;
+            }
+
             /* Animation */
             .product-type-field .acf-button-group label {
                 animation: fadeInUp 0.3s ease-out;
@@ -377,7 +385,8 @@ add_action('admin_enqueue_scripts', function($hook) {
                 }
 
                 .product-type-field .acf-button-group label[data-value="companies"]::after,
-                .product-type-field .acf-button-group label[data-value="social_media_assets"]::after {
+                .product-type-field .acf-button-group label[data-value="social_media_assets"]::after,
+                .product-type-field .acf-button-group label[data-value="newsletter"]::after {
                     font-size: 16px;
                     margin-bottom: 3px;
                 }

@@ -13,6 +13,7 @@ use App\View\Composers\SingleProduct\Tabs\ProductChannelsTab;
 use App\View\Composers\SingleProduct\Tabs\ProductLinksTab;
 use App\View\Composers\SingleProduct\Tabs\AttachmentsTab;
 use App\View\Composers\SingleProduct\Tabs\SocialMediaAssetsInfoTab;
+use App\View\Composers\SingleProduct\Tabs\NewsletterInformationTab;
 
 class ProductAcfFields extends Composer
 {
@@ -32,6 +33,7 @@ class ProductAcfFields extends Composer
     private static $allTabs = [
         CompaniesInfoTab::class,
         SocialMediaAssetsInfoTab::class,
+        NewsletterInformationTab::class,
         BuyoutDetailsTab::class,
         AssetOverviewTab::class,
         ProductChannelsTab::class,
@@ -56,6 +58,16 @@ class ProductAcfFields extends Composer
      */
     private static $socialMediaTabsOrder = [
         SocialMediaAssetsInfoTab::class,
+        BuyoutDetailsTab::class,
+        ProductLinksTab::class,
+        AttachmentsTab::class,
+    ];
+
+    /**
+     * Порядок табов для типа Newsletter
+     */
+    private static $newsletterTabsOrder = [
+        NewsletterInformationTab::class,
         BuyoutDetailsTab::class,
         ProductLinksTab::class,
         AttachmentsTab::class,
@@ -132,6 +144,7 @@ class ProductAcfFields extends Composer
     {
         return match ($productType) {
             'social_media_assets' => self::$socialMediaTabsOrder,
+            'newsletter' => self::$newsletterTabsOrder,
             'companies' => self::$companiesTabsOrder,
             default => self::$companiesTabsOrder,
         };
@@ -180,6 +193,7 @@ class ProductAcfFields extends Composer
         return match ($tabClass) {
             CompaniesInfoTab::class => $productType === 'companies',
             SocialMediaAssetsInfoTab::class => $productType === 'social_media_assets',
+            NewsletterInformationTab::class => $productType === 'newsletter',
             default => true, // Остальные табы видны для всех типов
         };
     }
@@ -192,6 +206,7 @@ class ProductAcfFields extends Composer
         return match ($tabClass) {
             CompaniesInfoTab::class => 'companies_info',
             SocialMediaAssetsInfoTab::class => 'social_media_assets_info',
+            NewsletterInformationTab::class => 'newsletter_info',
             BuyoutDetailsTab::class => 'buyout_details',
             AssetOverviewTab::class => 'asset_overview',
             ProductChannelsTab::class => 'product_channels',
@@ -222,6 +237,7 @@ class ProductAcfFields extends Composer
                     'choices' => [
                         'companies' => 'Companies',
                         'social_media_assets' => 'Social Media Assets',
+                        'newsletter' => 'Newsletter',
                     ],
                     'default_value' => 'companies',
                     'allow_null' => 0,

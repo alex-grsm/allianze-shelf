@@ -3,7 +3,7 @@
 @if (
     !empty($buyoutDetails['has_content']) &&
     isset($productAcfFields['product_type']) &&
-    in_array($productAcfFields['product_type'], ['companies', 'social_media_assets'])
+    in_array($productAcfFields['product_type'], ['companies', 'social_media_assets', 'newsletter'])
 )
 
     <section class="buyout-details-section bg-white py-20">

@@ -3,7 +3,7 @@
 @if (
     !empty($attachments['has_attachments']) &&
     isset($productAcfFields['product_type']) &&
-    in_array($productAcfFields['product_type'], ['companies', 'social_media_assets'])
+    in_array($productAcfFields['product_type'], ['companies', 'social_media_assets', 'newsletter'])
 )
 
 <section class="attachments-section py-20 bg-white">

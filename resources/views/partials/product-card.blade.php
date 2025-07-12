@@ -51,21 +51,28 @@
             @endif
 
             {{-- Label (только если поле существует и не пустое) --}}
-            @if(!empty($productAcfFields['label']))
+            @if(!empty($productAcfFields['label']) || !empty($productAcfFields['sma_label']) || !empty($productAcfFields['newsletter_label']))
                 @php
-                    $labelColor = $productAcfFields['label'] === 'easy_adaptable' ? 'bg-[#7700ff]' : 'bg-[#f62459]';
+                    $label = $productAcfFields['label'] ?? $productAcfFields['sma_label'] ?? $productAcfFields['newsletter_label'] ?? '';
+                    $labelColor = $label === 'easy_adaptable' ? 'bg-[#7700ff]' : 'bg-[#f62459]';
                 @endphp
-                <span class="absolute top-3 left-3 {{ $labelColor }} text-white font-semibold px-2 py-1 rounded-2xl leading-3 {{ $productAcfFields['label'] }}">
-                    {{ ucfirst(str_replace('_', ' ', $productAcfFields['label'])) }}
+                <span class="absolute top-3 left-3 {{ $labelColor }} text-white font-semibold px-2 py-1 rounded-2xl leading-3 {{ $label }}">
+                    {{ ucfirst(str_replace('_', ' ', $label)) }}
                 </span>
             @endif
 
             {{-- Флаг страны (только если данные доступны) --}}
-            @if(!empty($productAcfFields['country_flag_url']) && !empty($productAcfFields['country_code']))
-                <span class="absolute bottom-3 left-3 rounded-full overflow-hidden">
-                    <img src="{{ $productAcfFields['country_flag_url'] }}" alt="{{ $productAcfFields['country_code'] }}"
-                        class="size-6.5 object-cover">
-                </span>
+            @if(!empty($productAcfFields['country_flag_url']) || !empty($productAcfFields['sma_country_flag_url']) || !empty($productAcfFields['newsletter_country_flag_url']))
+                @php
+                    $flagUrl = $productAcfFields['country_flag_url'] ?? $productAcfFields['sma_country_flag_url'] ?? $productAcfFields['newsletter_country_flag_url'] ?? '';
+                    $countryCode = $productAcfFields['country_code'] ?? $productAcfFields['sma_country_code'] ?? $productAcfFields['newsletter_country_code'] ?? '';
+                @endphp
+                @if(!empty($flagUrl) && !empty($countryCode))
+                    <span class="absolute bottom-3 left-3 rounded-full overflow-hidden">
+                        <img src="{{ $flagUrl }}" alt="{{ $countryCode }}"
+                            class="size-6.5 object-cover">
+                    </span>
+                @endif
             @endif
         </div>
 
@@ -74,23 +81,30 @@
 
             <div class="concept-meta space-y-1.5 mb-3.5 text-sm">
                 {{-- Target (только если поле доступно) --}}
-                @if(!empty($productAcfFields['target']))
-                    <p><span class="font-bold">Target:</span> {{ $productAcfFields['target'] }}</p>
+                @php
+                    $target = $productAcfFields['target'] ?? $productAcfFields['sma_target'] ?? $productAcfFields['newsletter_target'] ?? '';
+                @endphp
+                @if(!empty($target))
+                    <p><span class="font-bold">Target:</span> {{ $target }}</p>
                 @endif
 
                 {{-- Year и Buyout (только если поля доступны) --}}
-                @if(!empty($productAcfFields['year']) || !empty($productAcfFields['buyout']))
+                @php
+                    $year = $productAcfFields['year'] ?? $productAcfFields['sma_year'] ?? $productAcfFields['newsletter_year'] ?? '';
+                    $buyout = $productAcfFields['buyout'] ?? $productAcfFields['sma_buyout'] ?? $productAcfFields['newsletter_buyout'] ?? '';
+                @endphp
+                @if(!empty($year) || !empty($buyout))
                     <p>
-                        @if(!empty($productAcfFields['year']))
-                            <span class="font-bold">Year:</span> {{ $productAcfFields['year'] }}
+                        @if(!empty($year))
+                            <span class="font-bold">Year:</span> {{ $year }}
                         @endif
 
-                        @if(!empty($productAcfFields['year']) && !empty($productAcfFields['buyout']))
+                        @if(!empty($year) && !empty($buyout))
                             |
                         @endif
 
-                        @if(!empty($productAcfFields['buyout']))
-                            <span class="font-bold">Buyout:</span> {{ $productAcfFields['buyout'] }}
+                        @if(!empty($buyout))
+                            <span class="font-bold">Buyout:</span> {{ $buyout }}
                         @endif
                     </p>
                 @endif
@@ -112,7 +126,6 @@
         </div>
     </a>
 </div>
-
 
     {{-- <div class="mb-4">
       <h4 class="font-semibold text-blue-600">ProductSummary данные:</h4>
