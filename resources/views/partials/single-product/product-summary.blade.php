@@ -1,63 +1,39 @@
 {{-- resources/views/partials/woocommerce/product-summary.blade.php --}}
 
-{{-- @dump($productSummary ?? 'productSummary не определена') --}}
+@php
+    // Получаем унифицированные мета-данные продукта через helper
+    $productMeta = get_product_meta_data($productSummary['id']);
+@endphp
 
-
-{{-- --------------------------------------------------------------- --}}
 <section class="py-20">
     <div class="container-fluid">
-
         <div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-start">
             <!-- Левая колонка - Изображение -->
             <div class="top-8">
                 <div class="overflow-hidden relative">
-                    <!-- Демо изображение с картонными фигурками -->
                     <div class="w-full h-full flex items-center justify-center">
-
                         <div class="w-full">
                             {{-- Галерея продукта --}}
                             @include('partials.single-product.product-gallery', [
                                 'productSummary' => $productSummary,
                             ])
                         </div>
-
                     </div>
                 </div>
             </div>
 
             <!-- Правая колонка - Информация о продукте -->
-            <div class=" xl:pr-[calc((100vw-1280px)/2+10px)] mt-12.5">
+            <div class="xl:pr-[calc((100vw-1280px)/2+10px)] mt-12.5">
 
                 <!-- Мета информация -->
                 <div class="flex mb-7">
-                    {{-- Блок с флагом страны (всегда показываем, но используем fallback если флаг отсутствует) --}}
-                    @php
-                        $flagUrl =
-                            $productAcfFields['country_flag_url'] ??
-                            ($productAcfFields['sma_country_flag_url'] ??
-                                ($productAcfFields['newsletter_country_flag_url'] ??
-                                    ($productAcfFields['landing_page_country_flag_url'] ?? '')));
-
-                        $countryCode =
-                            $productAcfFields['country_code'] ??
-                            ($productAcfFields['sma_country_code'] ??
-                                ($productAcfFields['newsletter_country_code'] ??
-                                    ($productAcfFields['landing_page_country_code'] ?? '')));
-
-                        // Используем default флаг если конкретный флаг недоступен
-                        $displayFlag = !empty($flagUrl) ? $flagUrl : asset('resources/images/icons/flag.svg');
-                        $displayAlt = !empty($countryCode) ? $countryCode : 'Default flag';
-                    @endphp
-
+                    {{-- Блок с флагом страны --}}
                     <div class="flex items-start flex-col gap-2 pr-8">
                         <span class="text-blue-600 text-xs font-bold">Origin OE</span>
                         <span class="rounded-full overflow-hidden flex">
-                            @if (!empty($flagUrl))
-                                <img src="{{ $flagUrl }}" alt="{{ $countryCode }}" class="size-6.5 object-cover">
-                            @else
-                                <img src="{{ asset('resources/images/icons/flag.svg') }}" alt="Default flag"
-                                    class="size-6.5 object-cover">
-                            @endif
+                            <img src="{{ $productMeta['country_flag_url'] }}"
+                                 alt="{{ $productMeta['country_code'] ?: 'Default flag' }}"
+                                 class="size-6.5 object-cover">
                         </span>
                     </div>
 
@@ -67,28 +43,7 @@
                     <!-- Content type -->
                     <div class="flex items-start flex-col gap-2 px-8">
                         <span class="text-blue-600 text-xs font-bold">Content type</span>
-                        <span class="text-blue-600">
-                            @if (isset($productAcfFields['product_type']))
-                                @switch($productAcfFields['product_type'])
-                                    @case('newsletter')
-                                        Newsletter campaign
-                                    @break
-
-                                    @case('social_media_assets')
-                                        Social Media campaign
-                                    @break
-
-                                    @case('landing_page')
-                                        Landing Page campaign
-                                    @break
-
-                                    @default
-                                        Brand campaign
-                                @endswitch
-                            @else
-                                Brand campaign
-                            @endif
-                        </span>
+                        <span class="text-blue-600">{{ $productMeta['display_name'] }}</span>
                     </div>
 
                     <!-- Разделитель -->
@@ -97,28 +52,7 @@
                     <!-- Product -->
                     <div class="flex items-start flex-col gap-2 px-8">
                         <span class="text-blue-600 text-xs font-bold">Product</span>
-                        <span class="text-blue-600">
-                            @if (isset($productAcfFields['product_type']))
-                                @switch($productAcfFields['product_type'])
-                                    @case('newsletter')
-                                        Newsletter
-                                    @break
-
-                                    @case('social_media_assets')
-                                        Social Media
-                                    @break
-
-                                    @case('landing_page')
-                                        Landing Page campaign
-                                    @break
-
-                                    @default
-                                        Car
-                                @endswitch
-                            @else
-                                Car
-                            @endif
-                        </span>
+                        <span class="text-blue-600">{{ $productMeta['product_name'] }}</span>
                     </div>
                 </div>
 
@@ -143,9 +77,13 @@
                 <!-- Цены и покупка -->
                 <div class="mb-4">
                     <!-- Доступность и форма покупки -->
-                    <div class="space-y-4" x-data="cartHandler({{ json_encode($productSummary['variations'] ?? []) }})" data-product-cart
-                        data-product-id="{{ $productSummary['id'] }}" data-nonce="{{ wp_create_nonce('add_to_cart') }}"
-                        data-ajax-url="{{ admin_url('admin-ajax.php') }}">
+                    <div class="space-y-4"
+                         x-data="cartHandler({{ json_encode($productSummary['variations'] ?? []) }})"
+                         data-product-cart
+                         data-product-id="{{ $productSummary['id'] }}"
+                         data-nonce="{{ wp_create_nonce('add_to_cart') }}"
+                         data-ajax-url="{{ admin_url('admin-ajax.php') }}">
+
                         {{-- Локальные уведомления для вариаций --}}
                         <x-local-alert />
 
@@ -154,8 +92,7 @@
                                 <div class="flex gap-5 mb-4">
                                     @foreach ($productSummary['variations'] as $variation)
                                         <div class="border-2 rounded-lg px-5 py-4 flex flex-col justify-between cursor-pointer transition-colors max-w-56"
-                                            :class="selectedVariation === {{ $variation['id'] }} ? 'border-blue-600' :
-                                                'border-[#e9e5e5]'"
+                                            :class="selectedVariation === {{ $variation['id'] }} ? 'border-blue-600' : 'border-[#e9e5e5]'"
                                             @click="selectVariation({{ $variation['id'] }})">
                                             <div class="font-bold mb-1 text-xs">Compensation Costs</div>
                                             <div class="text-xs mb-3">
@@ -172,18 +109,11 @@
                                     @endforeach
                                 </div>
 
-                                {{-- Блок с датой действия прав (только если поле доступно) --}}
-                                @php
-                                    $rightsUntilFormatted =
-                                        $productAcfFields['rights_until_formatted'] ??
-                                        ($productAcfFields['sma_rights_until_formatted'] ??
-                                            ($productAcfFields['newsletter_rights_until_formatted'] ??
-                                                ($productAcfFields['landing_page_until_formatted'] ?? '')));
-                                @endphp
-                                @if (!empty($rightsUntilFormatted))
+                                {{-- Блок с датой действия прав (используем helper) --}}
+                                @if (!empty($productMeta['rights_until_formatted']))
                                     <div class="mb-8">
                                         <div class="text-xs mb-1 font-bold">Rights available until</div>
-                                        <div>{{ $rightsUntilFormatted }}</div>
+                                        <div>{{ $productMeta['rights_until_formatted'] }}</div>
                                     </div>
                                 @endif
 
@@ -198,6 +128,7 @@
                                             Loading...
                                         </span>
                                     </button>
+
                                     <a href="{{ get_permalink(get_page_by_path('contact')) }}" target="_blank"
                                         class="!no-underline flex-1 bg-blue-600 text-white font-medium py-4 px-8 rounded-full transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none">
                                         <span class="flex items-center justify-center gap-2">
@@ -233,9 +164,7 @@
                             </button>
                         @endif
                     </div>
-
                 </div>
-
             </div>
         </div>
     </div>

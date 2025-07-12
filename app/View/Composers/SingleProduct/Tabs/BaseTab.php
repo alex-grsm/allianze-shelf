@@ -1,4 +1,5 @@
 <?php
+
 namespace App\View\Composers\SingleProduct\Tabs;
 
 use WC_Product;
@@ -44,85 +45,49 @@ abstract class BaseTab
      */
     protected static function isEnabledForProductType(WC_Product $product, array $allowedTypes): bool
     {
-        $productType = get_field('product_type', $product->get_id()) ?: 'companies';
+        $productType = get_product_type($product);
         return in_array($productType, $allowedTypes);
     }
 
     /**
      * Получить conditional logic для типа продукта
+     * @deprecated Используйте create_acf_conditional_logic() из helpers.php
      */
     protected static function getConditionalLogicForProductType(string $productType): array
     {
-        return [
-            [
-                [
-                    'field' => 'field_product_type',
-                    'operator' => '==',
-                    'value' => $productType,
-                ],
-            ],
-        ];
+        return create_acf_conditional_logic([$productType]);
     }
 
     /**
      * Получить conditional logic для типа продукта + дополнительное условие
+     * @deprecated Используйте create_acf_conditional_logic_for_types() из helpers.php
      */
     protected static function getConditionalLogicForProductTypeAndField(string $productType, string $fieldKey, string $value): array
     {
-        return [
-            [
-                [
-                    'field' => 'field_product_type',
-                    'operator' => '==',
-                    'value' => $productType,
-                ],
-                [
-                    'field' => $fieldKey,
-                    'operator' => '==',
-                    'value' => $value,
-                ],
-            ],
-        ];
+        return create_acf_conditional_logic_for_types(
+            [$productType],
+            ['field' => $fieldKey, 'value' => $value]
+        );
     }
 
     /**
      * Получить conditional logic для нескольких типов продуктов
+     * @deprecated Используйте create_acf_conditional_logic() из helpers.php
      */
     protected static function getConditionalLogicForProductTypes(array $productTypes): array
     {
-        $conditions = [];
-        foreach ($productTypes as $productType) {
-            $conditions[] = [
-                [
-                    'field' => 'field_product_type',
-                    'operator' => '==',
-                    'value' => $productType,
-                ],
-            ];
-        }
-        return $conditions;
+        return create_acf_conditional_logic($productTypes);
     }
 
     /**
      * Получить conditional logic для нескольких типов продуктов + дополнительное условие
+     * @deprecated Используйте create_acf_conditional_logic_for_types() из helpers.php
      */
     protected static function getConditionalLogicForProductTypesAndField(array $productTypes, string $fieldKey, string $value): array
     {
-        $conditions = [];
-        foreach ($productTypes as $productType) {
-            $conditions[] = [
-                [
-                    'field' => 'field_product_type',
-                    'operator' => '==',
-                    'value' => $productType,
-                ],
-                [
-                    'field' => $fieldKey,
-                    'operator' => '==',
-                    'value' => $value,
-                ],
-            ];
-        }
-        return $conditions;
+        return create_acf_conditional_logic_for_types(
+            $productTypes,
+            ['field' => $fieldKey, 'value' => $value]
+        );
     }
 }
