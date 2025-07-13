@@ -13,6 +13,12 @@
                 <h2 class="text-3xl font-bold text-blue-600 mb-4">
                     Asset Overview
                 </h2>
+                {{-- Проверяем наличие описания перед выводом --}}
+                @if (!empty($assetOverviewList['description']))
+                    <div class="text-blue-600 text-lg max-w-4xl leading-relaxed">
+                        {!! nl2br(e($assetOverviewList['description'])) !!}
+                    </div>
+                @endif
             </div>
 
             {{-- LIST DISPLAY --}}

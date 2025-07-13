@@ -57,10 +57,10 @@ function get_product_type_display_names(): array
 function get_product_type_product_names(): array
 {
     return [
-        PRODUCT_TYPE_COMPANIES => 'Car',
+        PRODUCT_TYPE_COMPANIES => 'Companies',
         PRODUCT_TYPE_SOCIAL_MEDIA_ASSETS => 'Social Media',
         PRODUCT_TYPE_NEWSLETTER => 'Newsletter',
-        PRODUCT_TYPE_LANDING_PAGE => 'Landing Page campaign',
+        PRODUCT_TYPE_LANDING_PAGE => 'Landing Page',
     ];
 }
 
@@ -134,6 +134,27 @@ function get_product_type(WC_Product|int $product): string
 }
 
 /**
+ * Get content type labels
+ */
+function get_content_type_labels(): array
+{
+    return [
+        'video' => 'Video',
+        'audio' => 'Audio',
+        'text' => 'Text',
+    ];
+}
+
+/**
+ * Get content type display name
+ */
+function get_content_type_display_name(string $contentType): string
+{
+    $labels = get_content_type_labels();
+    return $labels[$contentType] ?? 'Video';
+}
+
+/**
  * Get product meta data unified across all product types
  */
 function get_product_meta_data(WC_Product|int $product): array
@@ -149,10 +170,15 @@ function get_product_meta_data(WC_Product|int $product): array
     $display_names = get_product_type_display_names();
     $product_names = get_product_type_product_names();
 
+    // Получаем тип контента
+    $content_type = get_field("{$prefix}content_type", $product_obj->get_id()) ?: 'video';
+
     return [
         'product_type' => $product_type,
         'country_code' => get_field("{$prefix}product_country_code", $product_obj->get_id()) ?: '',
         'country_flag_url' => get_country_flag_url($product_obj),
+        'content_type' => $content_type,
+        'content_type_label' => get_content_type_display_name($content_type),
         'rights_until_date' => get_field("{$prefix}rights_until_date", $product_obj->get_id()),
         'rights_until_formatted' => get_formatted_rights_date($product_obj),
         'target' => get_field("{$prefix}product_target", $product_obj->get_id()) ?: '',
@@ -173,6 +199,8 @@ function get_empty_product_meta_data(): array
         'product_type' => PRODUCT_TYPE_COMPANIES,
         'country_code' => '',
         'country_flag_url' => flag_url(''),
+        'content_type' => 'video',
+        'content_type_label' => 'Video',
         'rights_until_date' => null,
         'rights_until_formatted' => '',
         'target' => '',
@@ -377,6 +405,26 @@ function create_product_info_fields(string $productType, string $tabName): array
             'conditional_logic' => $conditionalLogic,
         ],
         [
+            'key' => "field_{$prefix}content_type",
+            'label' => 'Content Type',
+            'name' => "{$prefix}content_type",
+            'type' => 'select',
+            'choices' => [
+                'video' => 'Video',
+                'audio' => 'Audio',
+                'text' => 'Text',
+            ],
+            'default_value' => 'video',
+            'allow_null' => 0,
+            'multiple' => 0,
+            'ui' => 1,
+            'return_format' => 'value',
+            'ajax' => 0,
+            'placeholder' => 'Select content type...',
+            'instructions' => 'Select the primary content type for this product',
+            'conditional_logic' => $conditionalLogic,
+        ],
+        [
             'key' => "field_{$prefix}rights_until_date",
             'label' => 'Rights Valid Until',
             'name' => "{$prefix}rights_until_date",
@@ -441,3 +489,4 @@ function create_product_info_fields(string $productType, string $tabName): array
         ],
     ];
 }
+

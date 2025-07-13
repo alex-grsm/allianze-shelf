@@ -35,7 +35,18 @@ class AssetOverviewListTab extends BaseTab
                 'ui_off_text' => 'No',
                 'conditional_logic' => create_acf_conditional_logic(['social_media_assets', 'newsletter', 'landing_page']),
             ],
-
+            [
+                'key' => 'field_asset_overview_list_description',
+                'label' => 'Section Description',
+                'name' => 'asset_overview_list_description',
+                'type' => 'textarea',
+                'instructions' => 'Enter description for the Asset Overview section. This will appear under the main title.',
+                'required' => 0,
+                'rows' => 3,
+                'placeholder' => 'Describe what this asset overview contains...',
+                'maxlength' => 500,
+                'conditional_logic' => create_acf_conditional_logic(['social_media_assets', 'newsletter', 'landing_page']),
+            ],
             [
                 'key' => 'field_asset_overview_list_items',
                 'label' => 'Asset Overview List Items',
@@ -103,6 +114,7 @@ class AssetOverviewListTab extends BaseTab
 
         return [
             'asset_overview_list_enabled' => self::getBooleanFieldValue('asset_overview_list_enabled', $productId, true),
+            'asset_overview_list_description' => self::getFieldValue('asset_overview_list_description', $productId, self::getDefaultDescription()),
             'asset_overview_list_items' => self::getFormattedItems($product),
             'asset_overview_list_stats' => self::getItemsStats($product),
             'has_asset_overview_list_content' => self::hasAssetOverviewListContent($product),
@@ -127,6 +139,7 @@ class AssetOverviewListTab extends BaseTab
 
         return [
             'assetOverviewList' => [
+                'description' => self::getFieldValue('asset_overview_list_description', $product->get_id(), self::getDefaultDescription()),
                 'items' => $formatted_items,
                 'total_count' => count($formatted_items),
                 'has_items' => !empty($formatted_items),
@@ -228,40 +241,12 @@ class AssetOverviewListTab extends BaseTab
         return count($activeItems) > 0;
     }
 
-
-
     /**
-     * Получить дефолтные items
+     * Получить описание по умолчанию
      */
-    private static function getDefaultItems(): array
+    private static function getDefaultDescription(): string
     {
-        return [
-            [
-                'item_enabled' => true,
-                'item_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.',
-            ],
-            [
-                'item_enabled' => true,
-                'item_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.',
-            ],
-            [
-                'item_enabled' => true,
-                'item_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.',
-            ],
-        ];
-    }
-
-    /**
-     * Получить базовые items
-     */
-    private static function getBasicItems(): array
-    {
-        return [
-            [
-                'item_enabled' => true,
-                'item_description' => 'Overview of the main assets and resources included in this product.',
-            ],
-        ];
+        return 'Explore the comprehensive collection of assets included in this product. Each item has been carefully crafted to provide maximum value and functionality.';
     }
 
     /**
@@ -283,14 +268,26 @@ class AssetOverviewListTab extends BaseTab
             return;
         }
 
-        // Только для новых продуктов типов social_media_assets, newsletter или landing_page
+        // Только для новых продуктов
         if (get_post_status($post_id) === 'auto-draft' && !get_field('asset_overview_list_items', $post_id)) {
-            $product_type = get_field('product_type', $post_id);
+            $default_items = [
+                [
+                    'item_enabled' => true,
+                    'item_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.',
+                ],
+                [
+                    'item_enabled' => true,
+                    'item_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.',
+                ],
+                [
+                    'item_enabled' => true,
+                    'item_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.',
+                ],
+            ];
 
-            if (in_array($product_type, ['social_media_assets', 'newsletter', 'landing_page'])) {
-                update_field('asset_overview_list_items', self::getDefaultItems(), $post_id);
-                update_field('asset_overview_list_enabled', true, $post_id);
-            }
+            update_field('asset_overview_list_items', $default_items, $post_id);
+            update_field('asset_overview_list_description', self::getDefaultDescription(), $post_id);
+            update_field('asset_overview_list_enabled', true, $post_id);
         }
     }
 
@@ -303,60 +300,18 @@ class AssetOverviewListTab extends BaseTab
             return;
         }
 
-        $product_type = get_field('product_type', $post_id);
-
-        if (!in_array($product_type, ['social_media_assets', 'newsletter', 'landing_page'])) {
-            return;
-        }
-
         $items = get_field('asset_overview_list_items', $post_id);
 
         // Если нет items, добавляем базовые
         if (empty($items)) {
-            update_field('asset_overview_list_items', self::getBasicItems(), $post_id);
+            $basic_items = [
+                [
+                    'item_enabled' => true,
+                    'item_description' => 'Overview of the main assets and resources included in this product.',
+                ],
+            ];
+
+            update_field('asset_overview_list_items', $basic_items, $post_id);
         }
-    }
-
-    // ===== STATIC HELPER METHODS FOR TEMPLATES =====
-
-    /**
-     * Получить количество активных items для продукта
-     */
-    public static function getActiveItemsCount(int $product_id): int
-    {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return 0;
-        }
-
-        $activeItems = self::getActiveItems($product);
-        return count($activeItems);
-    }
-
-    /**
-     * Проверить, есть ли items для отображения
-     */
-    public static function hasItems(int $product_id): bool
-    {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return false;
-        }
-
-        return self::hasAssetOverviewListContent($product);
-    }
-
-    /**
-     * Получить первый активный item (для превью)
-     */
-    public static function getFirstActiveItem(int $product_id): ?array
-    {
-        $product = wc_get_product($product_id);
-        if (!$product) {
-            return null;
-        }
-
-        $formattedItems = self::getFormattedItems($product);
-        return !empty($formattedItems) ? $formattedItems[0] : null;
     }
 }

@@ -1,9 +1,8 @@
-{{-- resources/views/partials/woocommerce/product-summary.blade.php --}}
+{{-- resources/views/partials/single-product/product-summary.blade.php --}}
 
 @php
     // Получаем унифицированные мета-данные продукта через helper
     $productMeta = get_product_meta_data($productSummary['id']);
-    @dump($productMeta);
 @endphp
 
 <section class="py-20">
@@ -44,7 +43,7 @@
                     <!-- Content type -->
                     <div class="flex items-start flex-col gap-2 px-8">
                         <span class="text-blue-600 text-xs font-bold">Content type</span>
-                        <span class="text-blue-600">{{ $productMeta['display_name'] }}</span>
+                        <span class="text-blue-600">{{ $productMeta['content_type_label'] }}</span>
                     </div>
 
                     <!-- Разделитель -->
