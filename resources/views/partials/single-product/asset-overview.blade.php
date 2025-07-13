@@ -16,7 +16,7 @@
                 {{-- Проверяем наличие описания перед выводом --}}
                 @if (!empty($assetOverview['description']))
                     <div class="text-blue-600 text-lg max-w-4xl leading-relaxed">
-                        {{ $assetOverview['description'] }}
+                        {!! nl2br(e($assetOverview['description'])) !!}
                     </div>
                 @endif
             </div>

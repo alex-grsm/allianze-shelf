@@ -113,6 +113,8 @@ abstract class BaseInfoTab extends BaseTab
         $fieldsToPrefix = [
             'country_code',
             'country_flag_url',
+            'content_type',
+            'content_type_label',
             'rights_until_date',
             'rights_until_formatted',
             'target',
