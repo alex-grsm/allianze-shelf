@@ -1,8 +1,10 @@
 <?php
 
+use App\Taxonomies\ProductTagsHierarchy;
 /**
  * Theme helpers
  */
+
 
 /**
  * Product type constants
@@ -490,3 +492,123 @@ function create_product_info_fields(string $productType, string $tabName): array
     ];
 }
 
+
+/**
+ * =========================================
+ * PRODUCT TAGS HELPER FUNCTIONS (MINIMAL)
+ * =========================================
+ */
+
+/**
+ * Получить все теги продукта в читаемом формате
+ */
+function get_product_tags_display(int $product_id, string $separator = ', '): string
+{
+    $tags = ProductTagsHierarchy::getProductTags($product_id);
+
+    if (empty($tags)) {
+        return '';
+    }
+
+    $tag_names = array_map(function($tag) {
+        return $tag['name'];
+    }, $tags);
+
+    return implode($separator, $tag_names);
+}
+
+/**
+ * Проверить, есть ли у продукта конкретный тег
+ */
+function product_has_tag(int $product_id, string $tag_slug): bool
+{
+    return ProductTagsHierarchy::productHasTag($product_id, $tag_slug);
+}
+
+/**
+ * Получить теги для отображения в карточке продукта
+ */
+function get_product_card_tags(int $product_id, int $limit = 3): array
+{
+    $tags = ProductTagsHierarchy::getProductTags($product_id);
+
+    if (empty($tags)) {
+        return [];
+    }
+
+    // Сортируем по уровню (сначала родительские)
+    usort($tags, function($a, $b) {
+        return $a['level'] - $b['level'];
+    });
+
+    // Ограничиваем количество
+    return array_slice($tags, 0, $limit);
+}
+
+/**
+ * Получить связанные продукты по тегам
+ */
+function get_related_products_by_tags(int $product_id, int $limit = 4): array
+{
+    $product_tags = ProductTagsHierarchy::getProductTags($product_id);
+
+    if (empty($product_tags)) {
+        return [];
+    }
+
+    $tag_ids = array_column($product_tags, 'id');
+
+    $args = [
+        'post_type' => 'product',
+        'posts_per_page' => $limit + 1, // +1 чтобы исключить текущий продукт
+        'post_status' => 'publish',
+        'post__not_in' => [$product_id],
+        'tax_query' => [
+            [
+                'taxonomy' => ProductTagsHierarchy::TAXONOMY_NAME,
+                'field' => 'term_id',
+                'terms' => $tag_ids,
+                'operator' => 'IN'
+            ]
+        ],
+        'orderby' => 'rand'
+    ];
+
+    $query = new WP_Query($args);
+    $products = [];
+
+    if ($query->have_posts()) {
+        while ($query->have_posts()) {
+            $query->the_post();
+            $product = wc_get_product(get_the_ID());
+            if ($product && count($products) < $limit) {
+                $products[] = $product;
+            }
+        }
+    }
+
+    wp_reset_postdata();
+    return $products;
+}
+
+/**
+ * Получить основные категории тегов
+ */
+function get_product_tag_categories(): array
+{
+    return ProductTagsHierarchy::getMainCategories();
+}
+
+/**
+ * Получить все теги определенной категории
+ */
+function get_product_tags_by_category(string $category_slug): array
+{
+    $category = get_term_by('slug', $category_slug, ProductTagsHierarchy::TAXONOMY_NAME);
+
+    if (!$category || is_wp_error($category)) {
+        return [];
+    }
+
+    return ProductTagsHierarchy::getChildrenTerms($category->term_id);
+}

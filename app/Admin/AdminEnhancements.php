@@ -1,95 +1,142 @@
 <?php
 
+namespace App\Admin;
+
 /**
  * Enhanced Admin UI + Fixed Update Button + ACF Styles
  *
  * @package Sage
  * @version 1.0.0
  */
-
-if (!defined('ABSPATH')) {
-    exit;
-}
-
-/**
- * Add enhanced admin styles and scripts
- */
-add_action('admin_enqueue_scripts', function($hook) {
-    // Only on post edit pages
-    if (!in_array($hook, ['post.php', 'post-new.php'])) {
-        return;
+class AdminEnhancements
+{
+    /**
+     * Регистрация всех админских улучшений
+     */
+    public static function register(): void
+    {
+        add_action('admin_enqueue_scripts', [self::class, 'enqueueAdminAssets']);
     }
 
-    // Only for posts, pages, and products
-    $screen = get_current_screen();
-    if (!$screen || !in_array($screen->post_type, ['post', 'page', 'product'])) {
-        return;
+    /**
+     * Подключение админских стилей и скриптов
+     */
+    public static function enqueueAdminAssets($hook): void
+    {
+        // Only on post edit pages
+        if (!in_array($hook, ['post.php', 'post-new.php'])) {
+            return;
+        }
+
+        // Only for posts, pages, and products
+        $screen = get_current_screen();
+        if (!$screen || !in_array($screen->post_type, ['post', 'page', 'product'])) {
+            return;
+        }
+
+        self::addUpdateButtonStyles();
+        self::addUpdateButtonScript();
+
+        // Enhanced ACF Styles for Products
+        if (get_post_type() === 'product') {
+            self::addProductAcfStyles();
+            self::addProductAcfScripts();
+        }
     }
 
-    // Add CSS for Update Button
-    wp_add_inline_style('admin-bar', '
-        #fixed-update-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 99999;
-            background: #ffe512;
-            color: black;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.7);
-            transition: all 0.3s ease;
-        }
-
-        #fixed-update-btn:hover {
-            background: #135e96;
-            color: #fff;
-            transform: translateY(-2px);
-        }
-
-        #fixed-update-btn:active {
-            transform: translateY(0);
-        }
-
-        @media (max-width: 782px) {
+    /**
+     * Добавление стилей для кнопки обновления
+     */
+    private static function addUpdateButtonStyles(): void
+    {
+        wp_add_inline_style('admin-bar', '
             #fixed-update-btn {
+                position: fixed;
                 bottom: 20px;
                 right: 20px;
-                padding: 10px 16px;
-                font-size: 13px;
+                z-index: 99999;
+                background: #ffe512;
+                color: black;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 20px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.7);
+                transition: all 0.3s ease;
             }
-        }
 
-        @media print {
-            #fixed-update-btn {
-                display: none !important;
+            #fixed-update-btn:hover {
+                background: #135e96;
+                color: #fff;
+                transform: translateY(-2px);
             }
-        }
-    ');
 
-    // Add JavaScript for Update Button
-    wp_add_inline_script('jquery', '
-        jQuery(document).ready(function($) {
-            // Create button
-            $("body").append("<button type=\"button\" id=\"fixed-update-btn\">Update</button>");
+            #fixed-update-btn:active {
+                transform: translateY(0);
+            }
 
-            // Button click
-            $("#fixed-update-btn").on("click", function() {
-                var mainButton = $("#publish, #save-post").first();
-                if (mainButton.length) {
-                    mainButton.click();
+            @media (max-width: 782px) {
+                #fixed-update-btn {
+                    bottom: 20px;
+                    right: 20px;
+                    padding: 10px 16px;
+                    font-size: 13px;
                 }
-            });
-        });
-    ');
+            }
 
-    // Enhanced ACF Styles for Products
-    if (get_post_type() === 'product') {
-        wp_add_inline_style('admin-bar', '
+            @media print {
+                #fixed-update-btn {
+                    display: none !important;
+                }
+            }
+        ');
+    }
+
+    /**
+     * Добавление скрипта для кнопки обновления
+     */
+    private static function addUpdateButtonScript(): void
+    {
+        wp_add_inline_script('jquery', '
+            jQuery(document).ready(function($) {
+                // Create button
+                $("body").append("<button type=\"button\" id=\"fixed-update-btn\">Update</button>");
+
+                // Button click
+                $("#fixed-update-btn").on("click", function() {
+                    var mainButton = $("#publish, #save-post").first();
+                    if (mainButton.length) {
+                        mainButton.click();
+                    }
+                });
+            });
+        ');
+    }
+
+    /**
+     * Добавление стилей для ACF полей продуктов
+     */
+    private static function addProductAcfStyles(): void
+    {
+        wp_add_inline_style('admin-bar', self::getProductAcfStyles());
+    }
+
+    /**
+     * Добавление скриптов для ACF полей продуктов
+     */
+    private static function addProductAcfScripts(): void
+    {
+        wp_add_inline_script('jquery', self::getProductAcfScripts());
+    }
+
+    /**
+     * Получение CSS стилей для ACF полей продуктов
+     */
+    private static function getProductAcfStyles(): string
+    {
+        return '
             /* ===== GENERAL POSTBOX STYLES ===== */
             .postbox {
                 border-radius: 8px;
@@ -410,10 +457,15 @@ add_action('admin_enqueue_scripts', function($hook) {
                 background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
                 color: white;
             }
-        ');
+        ';
+    }
 
-        // Add JavaScript for Enhanced Product Type Field and Tabs
-        wp_add_inline_script('jquery', '
+    /**
+     * Получение JavaScript кода для ACF полей продуктов
+     */
+    private static function getProductAcfScripts(): string
+    {
+        return '
             jQuery(document).ready(function($) {
                 // Initialize Product Type Field Enhancements
                 function initProductTypeField() {
@@ -465,6 +517,6 @@ add_action('admin_enqueue_scripts', function($hook) {
                     initTabEnhancements();
                 });
             });
-        ');
+        ';
     }
-});
+}

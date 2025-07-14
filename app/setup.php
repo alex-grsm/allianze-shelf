@@ -7,8 +7,6 @@
 namespace App;
 
 use Illuminate\Support\Facades\Vite;
-use App\WooCommerce\CartAjax;
-use App\View\Composers\SingleProduct\ProductAcfFields;
 
 /**
  * Inject styles into the block editor.
@@ -139,7 +137,7 @@ add_action('after_setup_theme', function () {
      */
     add_theme_support('customize-selective-refresh-widgets');
 
-    // add_theme_support('wc-product-gallery-zoom');
+    // WooCommerce theme support
     add_theme_support('wc-product-gallery-lightbox');
     add_theme_support('wc-product-gallery-slider');
 
@@ -169,15 +167,5 @@ add_action('widgets_init', function () {
     ] + $config);
 });
 
-// require_once __DIR__ . '/wc-template-hooks.php';
-require_once __DIR__ . '/admin-enhancements.php';
-
-/**
- * Custom AJAX handler for adding product to cart.
- */
-CartAjax::register();
-
-/**
- * Single Product ACF fields and functionality.
- */
-ProductAcfFields::register();
+// Подключение дополнительных файлов
+// require_once __DIR__ . '/admin-enhancements.php';
