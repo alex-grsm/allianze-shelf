@@ -31,7 +31,7 @@ function get_all_product_types(): array
 function get_product_type_labels(): array
 {
     return [
-        PRODUCT_TYPE_COMPANIES => 'Companies',
+        PRODUCT_TYPE_COMPANIES => 'Campaigns',
         PRODUCT_TYPE_SOCIAL_MEDIA_ASSETS => 'Social Media Assets',
         PRODUCT_TYPE_NEWSLETTER => 'Newsletter',
         PRODUCT_TYPE_LANDING_PAGE => 'Landing Page',
@@ -57,7 +57,7 @@ function get_product_type_display_names(): array
 function get_product_type_product_names(): array
 {
     return [
-        PRODUCT_TYPE_COMPANIES => 'Companies',
+        PRODUCT_TYPE_COMPANIES => 'Campaigns',
         PRODUCT_TYPE_SOCIAL_MEDIA_ASSETS => 'Social Media',
         PRODUCT_TYPE_NEWSLETTER => 'Newsletter',
         PRODUCT_TYPE_LANDING_PAGE => 'Landing Page',

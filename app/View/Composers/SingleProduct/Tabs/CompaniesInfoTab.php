@@ -19,7 +19,7 @@ class CompaniesInfoTab extends BaseInfoTab
      */
     protected static function getTabName(): string
     {
-        return 'Companies Information';
+        return 'Campaigns Information';
     }
 
     /**
