@@ -315,7 +315,7 @@ add_action('admin_enqueue_scripts', function($hook) {
 
             /* Product Type Icons */
             .product-type-field .acf-button-group label[data-value="companies"]::after {
-                content: "🏢";
+                content: "📢";
                 display: block;
                 font-size: 18px;
                 margin-bottom: 4px;

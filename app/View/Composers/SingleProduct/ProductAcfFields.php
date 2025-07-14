@@ -251,7 +251,7 @@ class ProductAcfFields extends Composer
                     'name' => 'product_type',
                     'type' => 'button_group',
                     'choices' => [
-                        'companies' => 'Companies',
+                        'companies' => 'Campaigns',
                         'social_media_assets' => 'Social Media Assets',
                         'newsletter' => 'Newsletter',
                         'landing_page' => 'Landing Page',

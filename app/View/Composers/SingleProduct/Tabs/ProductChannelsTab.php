@@ -229,14 +229,17 @@ class ProductChannelsTab extends BaseTab
     private static function getDefaultChannels(): array
     {
         return [
-            ['channel_name' => 'Web', 'channel_included' => true],
-            ['channel_name' => 'Newsletter', 'channel_included' => false],
-            ['channel_name' => 'Social Media', 'channel_included' => true],
-            ['channel_name' => 'Digital', 'channel_included' => false],
-            ['channel_name' => 'Print', 'channel_included' => false],
-            ['channel_name' => 'OOH', 'channel_included' => false],
-            ['channel_name' => 'POS', 'channel_included' => true],
-            ['channel_name' => 'TV/Radio', 'channel_included' => true],
+        ['channel_name' => 'Digital Ads', 'channel_included' => false],
+        ['channel_name' => 'Social Media', 'channel_included' => false],
+        ['channel_name' => 'Video & Audio', 'channel_included' => false],
+        ['channel_name' => 'TVC', 'channel_included' => false],
+        ['channel_name' => 'Internal', 'channel_included' => false],
+        ['channel_name' => 'Agent materials', 'channel_included' => false],
+        ['channel_name' => 'Events', 'channel_included' => false],
+        ['channel_name' => 'PR', 'channel_included' => false],
+        ['channel_name' => 'Landing pages / Editorials', 'channel_included' => false],
+        ['channel_name' => 'Newsletter', 'channel_included' => false],
+        ['channel_name' => 'Print', 'channel_included' => false],
         ];
     }
 
