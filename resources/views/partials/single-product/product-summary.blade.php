@@ -29,7 +29,7 @@
                 <div class="flex mb-7">
                     {{-- Блок с флагом страны --}}
                     <div class="flex items-start flex-col gap-2 pr-8">
-                        <span class="text-blue-600 text-xs font-bold">Origin OE</span>
+                        <span class="text-blue-600 text-xs font-bold">Origin {{ $productMeta['country_code'] ?: '' }}</span>
                         <span class="rounded-full overflow-hidden flex">
                             <img src="{{ $productMeta['country_flag_url'] }}"
                                  alt="{{ $productMeta['country_code'] ?: 'Default flag' }}"
@@ -94,7 +94,9 @@
                                         <div class="border-2 rounded-lg px-5 py-4 flex flex-col justify-between cursor-pointer transition-colors max-w-56"
                                             :class="selectedVariation === {{ $variation['id'] }} ? 'border-blue-600' : 'border-[#e9e5e5]'"
                                             @click="selectVariation({{ $variation['id'] }})">
-                                            <div class="font-bold mb-1 text-xs">Compensation Costs</div>
+                                            <div class="font-bold mb-1 text-xs">
+                                              {{ $loop->first ? 'Buyout costs' : 'Compensation Costs' }}
+                                            </div>
                                             <div class="text-xs mb-3">
                                                 @foreach ($variation['raw_attributes'] as $attribute_name => $attribute_value)
                                                     @if (!empty($attribute_value))
@@ -148,7 +150,7 @@
                                     <button @click="shareProduct()"
                                         class="p-4 rounded-full border border-gray-300 hover:border-gray-400 transition-colors">
                                         <x-svg-icon name="share" class="transition-transform duration-200" />
-                                    </button>
+                                 </button>
                                 </div>
                             </div>
                         @else
