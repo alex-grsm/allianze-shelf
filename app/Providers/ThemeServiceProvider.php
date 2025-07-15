@@ -8,6 +8,7 @@ use App\WooCommerce\CartAjax;
 use App\View\Composers\SingleProduct\ProductAcfFields;
 use App\Admin\ProductColumnsManager;
 use App\Admin\AdminEnhancements;
+use App\Search\SearchService;
 
 class ThemeServiceProvider extends SageServiceProvider
 {
@@ -30,6 +31,9 @@ class ThemeServiceProvider extends SageServiceProvider
     {
         parent::boot();
 
+        // Регистрируем сервис поиска
+        $this->registerSearchService();
+
         // Регистрируем админские сервисы
         $this->registerAdminServices();
 
@@ -40,6 +44,14 @@ class ThemeServiceProvider extends SageServiceProvider
 
         // Регистрируем остальные сервисы темы
         $this->registerThemeServices();
+    }
+
+    /**
+     * Регистрация сервиса поиска
+     */
+    private function registerSearchService(): void
+    {
+        SearchService::register();
     }
 
     /**
