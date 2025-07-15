@@ -3,6 +3,7 @@
 namespace App\Search;
 
 use Exception;
+use App\Taxonomies\ProductTagsHierarchy;
 
 class SearchService
 {
@@ -33,11 +34,16 @@ class SearchService
         add_action('save_post', [self::class, 'clearSearchCache']);
         add_action('delete_post', [self::class, 'clearSearchCache']);
 
-        // Очистка кеша при изменении терминов
+        // Очистка кеша при изменении терминов (включая кастомную таксономию)
         add_action('edited_product_cat', [self::class, 'clearSearchCacheOnTermUpdate'], 10, 3);
         add_action('edited_product_tag', [self::class, 'clearSearchCacheOnTermUpdate'], 10, 3);
         add_action('created_product_cat', [self::class, 'clearSearchCacheOnTermUpdate'], 10, 3);
         add_action('created_product_tag', [self::class, 'clearSearchCacheOnTermUpdate'], 10, 3);
+
+        // Добавляем поддержку кастомной таксономии
+        add_action('edited_' . ProductTagsHierarchy::TAXONOMY_NAME, [self::class, 'clearSearchCacheOnTermUpdate'], 10, 3);
+        add_action('created_' . ProductTagsHierarchy::TAXONOMY_NAME, [self::class, 'clearSearchCacheOnTermUpdate'], 10, 3);
+        add_action('deleted_' . ProductTagsHierarchy::TAXONOMY_NAME, [self::class, 'clearSearchCacheOnTermUpdate'], 10, 3);
 
         // Логирование популярных поисков
         add_action('template_redirect', [self::class, 'logSearchQuery']);
@@ -113,7 +119,7 @@ class SearchService
     }
 
     /**
-     * Включает поиск по мета-полям продуктов (ACF поля, исключая SKU)
+     * Включает поиск по мета-полям продуктов (ACF поля, исключая SKU) и кастомной таксономии
      */
     public static function includeProductMetaInSearch($search, $wp_query)
     {
@@ -168,17 +174,17 @@ class SearchService
             $escaped_term
         );
 
-        // Поиск по таксономиям продуктов
+        // Поиск по таксономиям продуктов (включая кастомную таксономию)
         $taxonomy_search = $wpdb->prepare("
             OR EXISTS (
                 SELECT 1 FROM {$wpdb->term_relationships} tr
                 INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
                 INNER JOIN {$wpdb->terms} t ON tt.term_id = t.term_id
                 WHERE tr.object_id = {$wpdb->posts}.ID
-                AND tt.taxonomy IN ('product_cat', 'product_tag', 'product_tags_hierarchy')
+                AND tt.taxonomy IN ('product_cat', 'product_tag', %s)
                 AND t.name LIKE %s
             )
-        ", $escaped_term);
+        ", ProductTagsHierarchy::TAXONOMY_NAME, $escaped_term);
 
         // Модифицируем поисковый запрос более безопасно
         if (preg_match('/\(\(\(.*?\)\)\)/', $search)) {
@@ -265,7 +271,7 @@ class SearchService
                         continue;
                     }
 
-                    // Вычисляем релевантность
+                    // Вычисляем релевантность (включая кастомную таксономию)
                     $relevance_score = self::calculateAjaxProductRelevance($product, $search_term);
 
                     // Устанавливаем минимальный порог релевантности
@@ -284,7 +290,6 @@ class SearchService
                     return $b['score'] - $a['score'];
                 });
 
-
                 // Если есть товары с очень высокой релевантностью (50+), показываем только высокорелевантные
                 $has_high_relevant = false;
                 foreach ($products_with_scores as $item) {
@@ -300,9 +305,6 @@ class SearchService
                         return $item['score'] >= 25;
                     });
                 }
-
-                // Берем только нужное количество самых релевантных товаров
-                $top_products = array_slice($products_with_scores, 0, min($per_page, 5));
 
                 // Берем только нужное количество самых релевантных товаров
                 $top_products = array_slice($products_with_scores, 0, $per_page);
@@ -379,7 +381,7 @@ class SearchService
     }
 
     /**
-     * Новая функция расчета релевантности для AJAX поиска
+     * Новая функция расчета релевантности для AJAX поиска (включая кастомную таксономию)
      */
     private static function calculateAjaxProductRelevance($product, $search_term)
     {
@@ -445,13 +447,58 @@ class SearchService
             }
         }
 
-        // Проверяем теги продукта
+        // Проверяем стандартные теги продукта
         $tags = wp_get_post_terms($product->get_id(), 'product_tag');
         if (!is_wp_error($tags) && !empty($tags)) {
             foreach ($tags as $tag) {
                 if (strpos(strtolower($tag->name), $search_term_lower) !== false) {
                     $score += 10;
                 }
+            }
+        }
+
+        // ===== НОВОЕ: Проверяем кастомную таксономию ProductTagsHierarchy =====
+        $hierarchy_tags = wp_get_post_terms($product->get_id(), ProductTagsHierarchy::TAXONOMY_NAME);
+        if (!is_wp_error($hierarchy_tags) && !empty($hierarchy_tags)) {
+            foreach ($hierarchy_tags as $hierarchy_tag) {
+                $tag_name_lower = strtolower($hierarchy_tag->name);
+
+                // Точное совпадение с hierarchy tag - высокий приоритет
+                if ($tag_name_lower === $search_term_lower) {
+                    $score += 40;
+                }
+                // Частичное совпадение
+                else if (strpos($tag_name_lower, $search_term_lower) !== false) {
+                    $score += 20;
+                }
+
+                // Дополнительный бонус для родительских тегов (level 0)
+                $ancestors = get_ancestors($hierarchy_tag->term_id, ProductTagsHierarchy::TAXONOMY_NAME);
+                if (empty($ancestors)) { // Это родительский тег
+                    $score += 5;
+                }
+            }
+        }
+
+        // Проверяем ACF поля для дополнительного контекста
+        $product_type = get_field('product_type', $product->get_id());
+        if (!empty($product_type) && strpos(strtolower($product_type), $search_term_lower) !== false) {
+            $score += 12;
+        }
+
+        // Проверяем target поля для всех типов продуктов
+        $target_fields = [
+            'target',
+            'sma_target',
+            'newsletter_target',
+            'landing_page_target'
+        ];
+
+        foreach ($target_fields as $field) {
+            $target_value = get_field($field, $product->get_id());
+            if (!empty($target_value) && strpos(strtolower($target_value), $search_term_lower) !== false) {
+                $score += 8;
+                break; // Один target field достаточно
             }
         }
 
@@ -501,7 +548,7 @@ class SearchService
     }
 
     /**
-     * Улучшает релевантность результатов поиска продуктов
+     * Улучшает релевантность результатов поиска продуктов (включая кастомную таксономию)
      */
     public static function improveSearchRelevance($posts, $query)
     {
@@ -536,7 +583,7 @@ class SearchService
     }
 
     /**
-     * Вычисляет оценку релевантности для продукта (убрали SKU)
+     * Вычисляет оценку релевантности для продукта (убрали SKU, добавили кастомную таксономию)
      */
     private static function calculateProductRelevanceScore($post, $search_term)
     {
@@ -574,6 +621,23 @@ class SearchService
             foreach ($categories as $category) {
                 if (strpos(strtolower($category->name), $search_term_lower) !== false) {
                     $score += 5;
+                }
+            }
+        }
+
+        // ===== НОВОЕ: Проверяем кастомную таксономию ProductTagsHierarchy =====
+        $hierarchy_tags = get_the_terms($post->ID, ProductTagsHierarchy::TAXONOMY_NAME);
+        if ($hierarchy_tags && !is_wp_error($hierarchy_tags)) {
+            foreach ($hierarchy_tags as $hierarchy_tag) {
+                $tag_name_lower = strtolower($hierarchy_tag->name);
+
+                // Точное совпадение с hierarchy tag
+                if ($tag_name_lower === $search_term_lower) {
+                    $score += 15;
+                }
+                // Частичное совпадение
+                else if (strpos($tag_name_lower, $search_term_lower) !== false) {
+                    $score += 8;
                 }
             }
         }
@@ -686,12 +750,12 @@ class SearchService
     }
 
     /**
-     * Очистка кеша при изменении терминов продуктов
+     * Очистка кеша при изменении терминов продуктов (включая кастомную таксономию)
      */
     public static function clearSearchCacheOnTermUpdate($term_id, $tt_id, $taxonomy)
     {
-        // Очищаем кеш при изменении категорий и тегов продуктов
-        if (in_array($taxonomy, ['product_cat', 'product_tag'])) {
+        // Очищаем кеш при изменении категорий, тегов продуктов и кастомной таксономии
+        if (in_array($taxonomy, ['product_cat', 'product_tag', ProductTagsHierarchy::TAXONOMY_NAME])) {
             wp_cache_flush_group('product_search_results');
 
             if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -800,11 +864,22 @@ class SearchService
     }
 
     /**
-     * Отладочная информация
+     * Отладочная информация (теперь включает информацию о кастомной таксономии)
      */
     public static function addSearchDebugInfo()
     {
         if (!is_admin() && (is_search() || is_front_page())) {
+            $hierarchy_taxonomy_exists = taxonomy_exists(ProductTagsHierarchy::TAXONOMY_NAME);
+            $hierarchy_terms_count = 0;
+
+            if ($hierarchy_taxonomy_exists) {
+                $hierarchy_terms = get_terms([
+                    'taxonomy' => ProductTagsHierarchy::TAXONOMY_NAME,
+                    'hide_empty' => false,
+                    'count' => true
+                ]);
+                $hierarchy_terms_count = is_array($hierarchy_terms) ? count($hierarchy_terms) : 0;
+            }
         ?>
             <script>
                 console.log('Product Search Debug Info:', {
@@ -813,10 +888,13 @@ class SearchService
                     shop_url: '<?php echo esc_js(wc_get_page_permalink('shop')); ?>',
                     nonce: '<?php echo esc_js(wp_create_nonce('search_nonce')); ?>',
                     is_woocommerce: <?php echo function_exists('wc_get_products') ? 'true' : 'false'; ?>,
-                    products_count: <?php echo function_exists('wc_get_products') ? count(wc_get_products(['limit' => 1])) : 0; ?>
+                    products_count: <?php echo function_exists('wc_get_products') ? count(wc_get_products(['limit' => 1])) : 0; ?>,
+                    hierarchy_taxonomy_exists: <?php echo $hierarchy_taxonomy_exists ? 'true' : 'false'; ?>,
+                    hierarchy_taxonomy_name: '<?php echo esc_js(ProductTagsHierarchy::TAXONOMY_NAME); ?>',
+                    hierarchy_terms_count: <?php echo $hierarchy_terms_count; ?>
                 });
             </script>
-<?php
+        <?php
         }
     }
 
@@ -833,7 +911,7 @@ class SearchService
     }
 
     /**
-     * Тестирование функций поиска продуктов
+     * Тестирование функций поиска продуктов (включая кастомную таксономию)
      */
     public static function testSearchFunctionality()
     {
@@ -852,18 +930,64 @@ class SearchService
                     echo 'Visible: ' . ($product->is_visible() ? 'Yes' : 'No') . '<br>';
                     echo 'In Stock: ' . ($product->is_in_stock() ? 'Yes' : 'No') . '<br>';
                     echo 'URL: ' . $product->get_permalink() . '<br>';
+
+                    // Проверяем кастомную таксономию
+                    $hierarchy_tags = wp_get_post_terms($product->get_id(), ProductTagsHierarchy::TAXONOMY_NAME);
+                    if (!is_wp_error($hierarchy_tags) && !empty($hierarchy_tags)) {
+                        echo 'Hierarchy Tags: ';
+                        $tag_names = array_map(function($tag) { return $tag->name; }, $hierarchy_tags);
+                        echo implode(', ', $tag_names) . '<br>';
+                    } else {
+                        echo 'Hierarchy Tags: None<br>';
+                    }
+
                     echo '</div><hr>';
                 }
 
-                // Тест релевантности
+                // Тест релевантности (включая кастомную таксономию)
                 echo '<h3>Тест релевантности для поиска "test":</h3>';
                 $test_products = wc_get_products(['limit' => 10, 'search' => 'test']);
                 foreach ($test_products as $product) {
                     $score = self::calculateAjaxProductRelevance($product, 'test');
                     echo '<div>';
                     echo '<strong>' . $product->get_name() . '</strong> - Score: ' . $score . '<br>';
+
+                    // Показываем причины релевантности
+                    $hierarchy_tags = wp_get_post_terms($product->get_id(), ProductTagsHierarchy::TAXONOMY_NAME);
+                    if (!is_wp_error($hierarchy_tags) && !empty($hierarchy_tags)) {
+                        foreach ($hierarchy_tags as $tag) {
+                            if (strpos(strtolower($tag->name), 'test') !== false) {
+                                echo '  → Found in hierarchy tag: ' . $tag->name . '<br>';
+                            }
+                        }
+                    }
                     echo '</div>';
                 }
+
+                // Тест кастомной таксономии
+                echo '<h3>Информация о кастомной таксономии:</h3>';
+                echo '<div>';
+                echo 'Taxonomy Name: ' . ProductTagsHierarchy::TAXONOMY_NAME . '<br>';
+                echo 'Taxonomy Exists: ' . (taxonomy_exists(ProductTagsHierarchy::TAXONOMY_NAME) ? 'Yes' : 'No') . '<br>';
+
+                $all_hierarchy_terms = get_terms([
+                    'taxonomy' => ProductTagsHierarchy::TAXONOMY_NAME,
+                    'hide_empty' => false
+                ]);
+
+                if (!is_wp_error($all_hierarchy_terms)) {
+                    echo 'Total Terms: ' . count($all_hierarchy_terms) . '<br>';
+                    if (!empty($all_hierarchy_terms)) {
+                        echo 'Sample Terms: ';
+                        $sample_terms = array_slice($all_hierarchy_terms, 0, 5);
+                        $sample_names = array_map(function($term) { return $term->name; }, $sample_terms);
+                        echo implode(', ', $sample_names) . '<br>';
+                    }
+                } else {
+                    echo 'Error getting terms: ' . $all_hierarchy_terms->get_error_message() . '<br>';
+                }
+                echo '</div>';
+
             } else {
                 echo '<p>WooCommerce не активен</p>';
             }
@@ -1068,5 +1192,146 @@ class SearchService
         }
 
         return false;
+    }
+
+    /**
+     * ===== НОВЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С КАСТОМНОЙ ТАКСОНОМИЕЙ =====
+     */
+
+    /**
+     * Поиск продуктов по конкретному тегу из иерархии
+     */
+    public static function searchProductsByHierarchyTag($tag_slug, $limit = 10)
+    {
+        if (!taxonomy_exists(ProductTagsHierarchy::TAXONOMY_NAME)) {
+            return [];
+        }
+
+        $args = [
+            'post_type' => 'product',
+            'posts_per_page' => $limit,
+            'post_status' => 'publish',
+            'meta_query' => [
+                [
+                    'key' => '_visibility',
+                    'value' => 'hidden',
+                    'compare' => '!='
+                ]
+            ],
+            'tax_query' => [
+                [
+                    'taxonomy' => ProductTagsHierarchy::TAXONOMY_NAME,
+                    'field' => 'slug',
+                    'terms' => $tag_slug
+                ]
+            ]
+        ];
+
+        $query = new \WP_Query($args);
+        $products = [];
+
+        if ($query->have_posts()) {
+            while ($query->have_posts()) {
+                $query->the_post();
+                $product = wc_get_product(get_the_ID());
+                if ($product && $product->is_visible()) {
+                    $products[] = $product;
+                }
+            }
+        }
+
+        wp_reset_postdata();
+        return $products;
+    }
+
+    /**
+     * Получить предложения для автодополнения поиска (включая теги иерархии)
+     */
+    public static function getSearchSuggestions($search_term, $limit = 5)
+    {
+        $suggestions = [];
+        $search_term_lower = strtolower(trim($search_term));
+
+        if (strlen($search_term_lower) < 2) {
+            return $suggestions;
+        }
+
+        // Поиск в названиях продуктов
+        $products = wc_get_products([
+            'limit' => $limit,
+            'search' => $search_term,
+            'status' => 'publish',
+            'visibility' => 'visible'
+        ]);
+
+        foreach ($products as $product) {
+            $suggestions[] = [
+                'type' => 'product',
+                'title' => $product->get_name(),
+                'url' => $product->get_permalink()
+            ];
+        }
+
+        // Поиск в кастомной таксономии
+        if (taxonomy_exists(ProductTagsHierarchy::TAXONOMY_NAME)) {
+            $hierarchy_terms = get_terms([
+                'taxonomy' => ProductTagsHierarchy::TAXONOMY_NAME,
+                'search' => $search_term,
+                'number' => $limit,
+                'hide_empty' => true
+            ]);
+
+            if (!is_wp_error($hierarchy_terms)) {
+                foreach ($hierarchy_terms as $term) {
+                    $suggestions[] = [
+                        'type' => 'hierarchy_tag',
+                        'title' => $term->name,
+                        'url' => get_term_link($term),
+                        'count' => $term->count
+                    ];
+                }
+            }
+        }
+
+        return array_slice($suggestions, 0, $limit);
+    }
+
+    /**
+     * Получить статистику поиска по кастомной таксономии
+     */
+    public static function getHierarchyTagsSearchStats()
+    {
+        if (!taxonomy_exists(ProductTagsHierarchy::TAXONOMY_NAME)) {
+            return [
+                'taxonomy_exists' => false,
+                'total_terms' => 0,
+                'terms_with_products' => 0,
+                'most_popular_terms' => []
+            ];
+        }
+
+        $all_terms = get_terms([
+            'taxonomy' => ProductTagsHierarchy::TAXONOMY_NAME,
+            'hide_empty' => false
+        ]);
+
+        $terms_with_products = get_terms([
+            'taxonomy' => ProductTagsHierarchy::TAXONOMY_NAME,
+            'hide_empty' => true
+        ]);
+
+        // Сортируем по количеству продуктов
+        if (!is_wp_error($terms_with_products)) {
+            usort($terms_with_products, function($a, $b) {
+                return $b->count - $a->count;
+            });
+        }
+
+        return [
+            'taxonomy_exists' => true,
+            'total_terms' => is_wp_error($all_terms) ? 0 : count($all_terms),
+            'terms_with_products' => is_wp_error($terms_with_products) ? 0 : count($terms_with_products),
+            'most_popular_terms' => is_wp_error($terms_with_products) ? [] : array_slice($terms_with_products, 0, 10)
+        ];
     }
 }
