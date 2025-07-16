@@ -137,10 +137,20 @@
             </div>
 
             <div class="mt-auto flex justify-between items-center">
-                {{-- Tags --}}
+                {{-- Тег из Product Tags Hierarchy --}}
+                @php
+                    // Получаем первый тег из кастомной таксономии ProductTagsHierarchy
+                    $firstTag = '';
+                    if ($productSummary['id']) {
+                        $productTags = get_product_card_tags($productSummary['id'], 1);
+                        if (!empty($productTags)) {
+                            $firstTag = $productTags[0]['name'];
+                        }
+                    }
+                @endphp
                 <span
-                    class="!no-underline concept-tag inline-flex items-center px-3 py-1 rounded-full text-sm border border-purple-600">
-                    {{-- {{ $tag }} --}}
+                    class="!no-underline concept-tag inline-flex items-center px-3 py-1 rounded-full border border-yellow-300">
+                    {{ $firstTag ?: 'No tag' }}
                 </span>
 
                 {{-- Рейтинг товара --}}
@@ -153,7 +163,7 @@
     </a>
 </div>
 
-<div class="mb-4">
+{{-- <div class="mb-4">
       <h4 class="font-semibold text-blue-600">ProductSummary данные:</h4>
       @dump($productSummary)
     </div>
@@ -166,4 +176,4 @@
     <div class="mb-4">
       <h4 class="font-semibold text-purple-600">Все доступные переменные:</h4>
       @dump(get_defined_vars())
-    </div>
+    </div> --}}
