@@ -69,26 +69,68 @@
 
             {{-- Флаг страны (всегда показываем с fallback) --}}
             @php
-                $flagUrl =
-                    $productAcfFields['country_flag_url'] ??
-                    ($productAcfFields['sma_country_flag_url'] ??
-                        ($productAcfFields['newsletter_country_flag_url'] ??
-                            ($productAcfFields['landing_page_country_flag_url'] ?? '')));
+                $countryCodes =
+                    $productAcfFields['country_codes'] ??
+                    ($productAcfFields['sma_country_codes'] ??
+                        ($productAcfFields['newsletter_country_codes'] ??
+                            ($productAcfFields['landing_page_country_codes'] ?? [])));
 
-                $countryCode =
-                    $productAcfFields['country_code'] ??
-                    ($productAcfFields['sma_country_code'] ??
-                        ($productAcfFields['newsletter_country_code'] ??
-                            ($productAcfFields['landing_page_country_code'] ?? '')));
+                $countryFlagsUrls =
+                    $productAcfFields['country_flags_urls'] ??
+                    ($productAcfFields['sma_country_flags_urls'] ??
+                        ($productAcfFields['newsletter_country_flags_urls'] ??
+                            ($productAcfFields['landing_page_country_flags_urls'] ?? [])));
 
-                // Используем default флаг если конкретный флаг недоступен
-                $displayFlag = !empty($flagUrl) ? $flagUrl : asset('resources/images/icons/flag.svg');
-                $displayAlt = !empty($countryCode) ? $countryCode : 'Default flag';
+                // Fallback на старые поля для совместимости
+                if (empty($countryCodes)) {
+                    $oldCountryCode =
+                        $productAcfFields['country_code'] ??
+                        ($productAcfFields['sma_country_code'] ??
+                            ($productAcfFields['newsletter_country_code'] ??
+                                ($productAcfFields['landing_page_country_code'] ?? '')));
+
+                    if (!empty($oldCountryCode)) {
+                        $countryCodes = [$oldCountryCode];
+                        $countryFlagsUrls = [flag_url($oldCountryCode)];
+                    }
+                }
+
+                // Убеждаемся что это массивы
+                if (!is_array($countryCodes)) {
+                    $countryCodes = !empty($countryCodes) ? [$countryCodes] : [];
+                }
+                if (!is_array($countryFlagsUrls)) {
+                    $countryFlagsUrls = !empty($countryFlagsUrls) ? [$countryFlagsUrls] : [];
+                }
+
+                // Убираем пустые значения
+                $countryCodes = array_filter($countryCodes);
+                $countryFlagsUrls = array_filter($countryFlagsUrls);
+
+                // Ограничиваем количество флагов для карточки
+                $maxFlags = 10;
+                $displayCodes = array_slice($countryCodes, 0, $maxFlags);
+                $displayFlagsUrls = array_slice($countryFlagsUrls, 0, $maxFlags);
+                $moreCount = max(0, count($countryCodes) - $maxFlags);
             @endphp
 
-            <span class="absolute bottom-3 left-3 rounded-full overflow-hidden">
-                <img src="{{ $displayFlag }}" alt="{{ $displayAlt }}" class="size-6.5 object-cover">
-            </span>
+            <div class="absolute bottom-3 left-3 flex items-center space-x-1">
+                @if (!empty($displayFlagsUrls))
+                    @foreach ($displayFlagsUrls as $index => $flagUrl)
+                        <span class="rounded-full overflow-hidden {{ $index > 0 ? '-ml-1.5' : '' }}" style="z-index: {{ 10 - $index }}">
+                            <img src="{{ $flagUrl }}"
+                                 alt="{{ $displayCodes[$index] ?? 'Country flag' }}"
+                                 class="size-6.5 object-cover"
+                                 title="{{ $displayCodes[$index] ?? '' }}">
+                        </span>
+                    @endforeach
+                @else
+                    {{-- Fallback флаг --}}
+                    <span class="rounded-full overflow-hidden">
+                        <img src="{{ flag_url('') }}" alt="Default flag" class="size-6.5 object-cover">
+                    </span>
+                @endif
+            </div>
         </div>
 
         <div class="pt-2.5 pb-4 px-3 flex flex-col flex-1">

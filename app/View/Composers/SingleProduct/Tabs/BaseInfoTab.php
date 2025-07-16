@@ -44,8 +44,8 @@ abstract class BaseInfoTab extends BaseTab
         $productType = static::getProductType();
         $tabName = static::getTabName();
 
-        // Get standard info fields using helper
-        $fields = create_product_info_fields($productType, $tabName);
+        // Get standard info fields
+        $fields = static::createProductInfoFields($productType, $tabName);
 
         // Add any additional fields specific to this tab
         $additionalFields = static::getAdditionalFields();
@@ -101,6 +101,126 @@ abstract class BaseInfoTab extends BaseTab
     }
 
     /**
+     * Create standard info fields for product type
+     * MOVED FROM helpers.php
+     */
+    protected static function createProductInfoFields(string $productType, string $tabName): array
+    {
+        $prefix = get_product_field_prefix($productType);
+        $conditionalLogic = create_acf_conditional_logic([$productType]);
+
+        return [
+            [
+                'key' => "field_{$productType}_info_tab",
+                'label' => $tabName,
+                'type' => 'tab',
+                'placement' => 'top',
+                'endpoint' => 0,
+                'conditional_logic' => $conditionalLogic,
+            ],
+            [
+                'key' => "field_{$prefix}product_country_codes",
+                'label' => 'Countries of Origin',
+                'name' => "{$prefix}product_country_codes",
+                'type' => 'select',
+                'choices' => get_country_choices(),
+                'default_value' => [],
+                'allow_null' => 1,
+                'multiple' => 1, // МНОЖЕСТВЕННЫЙ ВЫБОР
+                'ui' => 1,
+                'return_format' => 'value',
+                'ajax' => 0,
+                'placeholder' => 'Select countries...',
+                'instructions' => 'Select the countries where the product is manufactured or distributed',
+                'conditional_logic' => $conditionalLogic,
+            ],
+            [
+                'key' => "field_{$prefix}content_type",
+                'label' => 'Content Type',
+                'name' => "{$prefix}content_type",
+                'type' => 'select',
+                'choices' => [
+                    'video' => 'Video',
+                    'audio' => 'Audio',
+                    'text' => 'Text',
+                ],
+                'default_value' => 'video',
+                'allow_null' => 0,
+                'multiple' => 0,
+                'ui' => 1,
+                'return_format' => 'value',
+                'ajax' => 0,
+                'placeholder' => 'Select content type...',
+                'instructions' => 'Select the primary content type for this product',
+                'conditional_logic' => $conditionalLogic,
+            ],
+            [
+                'key' => "field_{$prefix}rights_until_date",
+                'label' => 'Rights Valid Until',
+                'name' => "{$prefix}rights_until_date",
+                'type' => 'date_picker',
+                'display_format' => 'm/Y',
+                'return_format' => 'Y-m-d',
+                'first_day' => 1,
+                'instructions' => 'Select the expiration date for product rights',
+                'conditional_logic' => $conditionalLogic,
+            ],
+            [
+                'key' => "field_{$prefix}product_target",
+                'label' => 'Target',
+                'name' => "{$prefix}product_target",
+                'type' => 'text',
+                'default_value' => '',
+                'maxlength' => '',
+                'placeholder' => 'Enter target information...',
+                'instructions' => 'Specify the target information for this product',
+                'conditional_logic' => $conditionalLogic,
+            ],
+            [
+                'key' => "field_{$prefix}product_year",
+                'label' => 'Year',
+                'name' => "{$prefix}product_year",
+                'type' => 'text',
+                'default_value' => '',
+                'maxlength' => 4,
+                'placeholder' => 'YYYY',
+                'instructions' => 'Enter the year for this product',
+                'conditional_logic' => $conditionalLogic,
+            ],
+            [
+                'key' => "field_{$prefix}product_buyout",
+                'label' => 'Buyout',
+                'name' => "{$prefix}product_buyout",
+                'type' => 'text',
+                'default_value' => '',
+                'maxlength' => '',
+                'placeholder' => 'Enter buyout information...',
+                'instructions' => 'Specify the buyout information for this product',
+                'conditional_logic' => $conditionalLogic,
+            ],
+            [
+                'key' => "field_{$prefix}product_label",
+                'label' => 'Product Label',
+                'name' => "{$prefix}product_label",
+                'type' => 'select',
+                'choices' => [
+                    'featured' => 'Featured',
+                    'easy_adaptable' => 'Easy adaptable',
+                ],
+                'default_value' => '',
+                'allow_null' => 1,
+                'multiple' => 0,
+                'ui' => 1,
+                'return_format' => 'value',
+                'ajax' => 0,
+                'placeholder' => 'Select label...',
+                'instructions' => 'Choose a label for this product',
+                'conditional_logic' => $conditionalLogic,
+            ],
+        ];
+    }
+
+    /**
      * Create prefixed data array for backward compatibility
      *
      * @param array $metaData Unified meta data from helper
@@ -111,8 +231,11 @@ abstract class BaseInfoTab extends BaseTab
     {
         $data = [];
         $fieldsToPrefix = [
-            'country_code',
-            'country_flag_url',
+            'country_codes',
+            'country_flags_urls',
+            'primary_country_code',
+            'primary_country_flag_url',
+            'countries_display',
             'content_type',
             'content_type_label',
             'rights_until_date',
