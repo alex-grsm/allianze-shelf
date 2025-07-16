@@ -2,6 +2,7 @@
 import Alpine from 'alpinejs';
 import viewportHeight from './helpers/viewport-height.js';
 import './components/product-cart.js';
+import './components/header-search.js';
 
 import { showGlobalAlert, hideGlobalAlert } from './helpers/alert.js';
 import SwiperComponent from './components/swiper.js';

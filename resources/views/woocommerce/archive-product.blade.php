@@ -39,23 +39,11 @@
       @endif
     </header>
 
-    {{-- WooCommerce уведомления --}}
-    @php(wc_print_notices())
 
     {{-- Хуки перед списком товаров --}}
     @php(do_action('woocommerce_before_shop_loop'))
 
     @if(woocommerce_product_loop())
-
-      {{-- Сортировка и отображение результатов --}}
-      <div class="shop-controls flex justify-between items-center mb-6 flex-wrap gap-4">
-        <div class="result-count">
-          @php(woocommerce_result_count())
-        </div>
-        <div class="ordering">
-          @php(woocommerce_catalog_ordering())
-        </div>
-      </div>
 
       {{-- Начало цикла товаров --}}
       @php(woocommerce_product_loop_start())
@@ -100,69 +88,3 @@
 
   </div>
 @endsection
-
-{{-- Подключение стилей для WooCommerce (опционально) --}}
-@push('styles')
-  <style>
-    /* Дополнительные стили для архива товаров */
-    .products-grid {
-      margin-bottom: 2rem;
-    }
-
-    .product-wrapper {
-      height: 100%;
-    }
-
-    .product-card {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .product-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .add-to-cart {
-      margin-top: auto;
-    }
-
-    /* Стили для отладочной секции */
-    .debug-section {
-      max-height: 300px;
-      overflow-y: auto;
-      font-size: 11px;
-    }
-
-    .debug-section pre {
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-  </style>
-@endpush
-
-{{-- Подключение JavaScript для AJAX корзины (опционально) --}}
-@push('scripts')
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // AJAX добавление в корзину
-      const addToCartButtons = document.querySelectorAll('[data-ajax-add-to-cart="true"]');
-
-      addToCartButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-          e.preventDefault();
-
-          const productId = this.getAttribute('data-product-id');
-
-          // Здесь можно добавить AJAX запрос для добавления товара в корзину
-          console.log('Добавление товара в корзину:', productId);
-
-          // Временно перенаправляем на обычную ссылку
-          window.location.href = this.getAttribute('href');
-        });
-      });
-    });
-  </script>
-@endpush

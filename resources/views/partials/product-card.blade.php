@@ -24,14 +24,14 @@
                 }
 
                 // Определяем URL изображения с fallback'ами
-$imageUrl = '';
-if ($displayImage) {
-    // Приоритет размеров для карточки товара
-    $imageUrl = $displayImage['large']['url'] ?? ($displayImage['full']['url'] ?? '');
-}
+                $imageUrl = '';
+                if ($displayImage) {
+                    // Приоритет размеров для карточки товара
+                    $imageUrl = $displayImage['large']['url'] ?? ($displayImage['full']['url'] ?? '');
+                }
 
-// Alt текст
-$altText = $displayImage['alt'] ?? ($productSummary['title'] ?? 'Product image');
+                // Alt текст
+                $altText = $displayImage['alt'] ?? ($productSummary['title'] ?? 'Product image');
             @endphp
 
             @if ($imageUrl)
@@ -153,7 +153,7 @@ $altText = $displayImage['alt'] ?? ($productSummary['title'] ?? 'Product image')
     </a>
 </div>
 
-{{-- <div class="mb-4">
+<div class="mb-4">
       <h4 class="font-semibold text-blue-600">ProductSummary данные:</h4>
       @dump($productSummary)
     </div>
@@ -166,4 +166,4 @@ $altText = $displayImage['alt'] ?? ($productSummary['title'] ?? 'Product image')
     <div class="mb-4">
       <h4 class="font-semibold text-purple-600">Все доступные переменные:</h4>
       @dump(get_defined_vars())
-    </div> --}}
+    </div>

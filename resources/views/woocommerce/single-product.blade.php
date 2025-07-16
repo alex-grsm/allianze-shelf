@@ -17,6 +17,7 @@ The Template for displaying all single products
 @endphp
 
 <div style="background: #f0f0f0; padding: 20px; margin: 70px 0; border-radius: 8px;">
+
     <h4>🏷️ Tags Testing Debug</h4>
 
     <div style="margin-bottom: 15px;">
