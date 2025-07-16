@@ -9,6 +9,7 @@ use App\View\Composers\SingleProduct\ProductAcfFields;
 use App\Admin\ProductColumnsManager;
 use App\Admin\AdminEnhancements;
 use App\Search\SearchService;
+use App\Helpers\MenuHelper;
 
 class ThemeServiceProvider extends SageServiceProvider
 {
@@ -34,6 +35,9 @@ class ThemeServiceProvider extends SageServiceProvider
         // Регистрируем сервис поиска
         $this->registerSearchService();
 
+        // Регистрируем сервис меню
+        $this->registerMenuService();
+
         // Регистрируем админские сервисы
         $this->registerAdminServices();
 
@@ -52,6 +56,14 @@ class ThemeServiceProvider extends SageServiceProvider
     private function registerSearchService(): void
     {
         SearchService::register();
+    }
+
+    /**
+     * Регистрация сервиса меню
+     */
+    private function registerMenuService(): void
+    {
+        MenuHelper::register();
     }
 
     /**
@@ -113,7 +125,7 @@ class ThemeServiceProvider extends SageServiceProvider
     public function registerCustomRestFields()
     {
         register_rest_field('product', 'product_tags_hierarchy', [
-            'get_callback' => function($object) {
+            'get_callback' => function ($object) {
                 return ProductTagsHierarchy::getProductTags($object['id']);
             },
             'schema' => [
