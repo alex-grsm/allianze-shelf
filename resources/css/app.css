@@ -67,6 +67,13 @@
   .product-description ol {
     @apply list-disc pl-4;
   }
+
+  .subcategory-block:first-child .subcategory-block__content {
+    @apply -mt-120 z-20;
+  }
+  .subcategory-block:first-child .subcategory-block__title {
+    @apply text-white;
+  }
 }
 
 @layer components {
