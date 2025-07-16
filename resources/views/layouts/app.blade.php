@@ -14,7 +14,7 @@
 
     <div id="app" class="min-h-screen flex flex-col">
 
-      @include('sections.header')
+      @include('partials.header')
 
       <div class="flex-grow">
         <main id="main" class="main">
@@ -28,7 +28,7 @@
         @endif
       </div>
 
-      @include('sections.footer')
+      @include('partials.footer')
     </div>
 
     @php(do_action('get_footer'))
