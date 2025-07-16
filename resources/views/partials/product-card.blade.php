@@ -27,7 +27,7 @@
                 $imageUrl = '';
                 if ($displayImage) {
                     // Приоритет размеров для карточки товара
-                    $imageUrl = $displayImage['large']['url'] ?? ($displayImage['full']['url'] ?? '');
+                    $imageUrl = $displayImage['medium']['url'] ?? ($displayImage['full']['url'] ?? '');
                 }
 
                 // Alt текст
