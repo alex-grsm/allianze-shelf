@@ -158,6 +158,7 @@ function get_content_type_display_name(string $contentType): string
 
 /**
  * Get product meta data unified across all product types
+ * UPDATED: Now handles multiple countries
  */
 function get_product_meta_data(WC_Product|int $product): array
 {
@@ -175,10 +176,21 @@ function get_product_meta_data(WC_Product|int $product): array
     // Получаем тип контента
     $content_type = get_field("{$prefix}content_type", $product_obj->get_id()) ?: 'video';
 
+    // ОБНОВЛЕНО: Получаем множественные страны
+    $countries_data = get_product_countries_data($product_obj);
+
     return [
         'product_type' => $product_type,
-        'country_code' => get_field("{$prefix}product_country_code", $product_obj->get_id()) ?: '',
-        'country_flag_url' => get_country_flag_url($product_obj),
+        // Новые поля для множественных стран
+        'country_codes' => $countries_data['codes'],
+        'country_flags_urls' => $countries_data['flags_urls'],
+        'primary_country_code' => $countries_data['primary_code'],
+        'primary_country_flag_url' => $countries_data['primary_flag_url'],
+        'countries_display' => $countries_data['display'],
+        // Для обратной совместимости
+        'country_code' => $countries_data['primary_code'],
+        'country_flag_url' => $countries_data['primary_flag_url'],
+        // Остальные поля
         'content_type' => $content_type,
         'content_type_label' => get_content_type_display_name($content_type),
         'rights_until_date' => get_field("{$prefix}rights_until_date", $product_obj->get_id()),
@@ -193,14 +205,72 @@ function get_product_meta_data(WC_Product|int $product): array
 }
 
 /**
+ * NEW: Get product countries data (multiple countries support)
+ */
+function get_product_countries_data(WC_Product $product): array
+{
+    $product_type = get_product_type($product);
+    $prefix = get_product_field_prefix($product_type);
+
+    // Получаем массив стран (новое поле)
+    $country_codes = get_field("{$prefix}product_country_codes", $product->get_id());
+
+    // Если нет данных в новом поле, пробуем старое поле для совместимости
+    if (empty($country_codes)) {
+        $old_country_code = get_field("{$prefix}product_country_code", $product->get_id());
+        $country_codes = !empty($old_country_code) ? [$old_country_code] : [];
+    }
+
+    // Убеждаемся что это массив
+    if (!is_array($country_codes)) {
+        $country_codes = !empty($country_codes) ? [$country_codes] : [];
+    }
+
+    // Убираем пустые значения
+    $country_codes = array_filter($country_codes);
+
+    $flags_urls = [];
+    $countries_display = [];
+    $country_choices = get_country_choices();
+
+    foreach ($country_codes as $code) {
+        if (!empty($code)) {
+            $flags_urls[] = flag_url($code);
+            $countries_display[] = $country_choices[$code] ?? strtoupper($code);
+        }
+    }
+
+    // Первая страна как основная
+    $primary_code = !empty($country_codes) ? $country_codes[0] : '';
+    $primary_flag_url = !empty($flags_urls) ? $flags_urls[0] : flag_url('');
+
+    return [
+        'codes' => $country_codes,
+        'flags_urls' => $flags_urls,
+        'primary_code' => $primary_code,
+        'primary_flag_url' => $primary_flag_url,
+        'display' => $countries_display,
+    ];
+}
+
+/**
  * Get empty product meta data structure
+ * UPDATED: Now includes multiple countries fields
  */
 function get_empty_product_meta_data(): array
 {
     return [
         'product_type' => PRODUCT_TYPE_COMPANIES,
+        // Новые поля для множественных стран
+        'country_codes' => [],
+        'country_flags_urls' => [],
+        'primary_country_code' => '',
+        'primary_country_flag_url' => flag_url(''),
+        'countries_display' => [],
+        // Для обратной совместимости
         'country_code' => '',
         'country_flag_url' => flag_url(''),
+        // Остальные поля
         'content_type' => 'video',
         'content_type_label' => 'Video',
         'rights_until_date' => null,
@@ -215,15 +285,13 @@ function get_empty_product_meta_data(): array
 }
 
 /**
- * Get country flag URL for product
+ * Get country flag URL for product (DEPRECATED but kept for compatibility)
+ * Use get_product_countries_data() instead
  */
 function get_country_flag_url(WC_Product $product): string
 {
-    $product_type = get_product_type($product);
-    $prefix = get_product_field_prefix($product_type);
-    $country_code = get_field("{$prefix}product_country_code", $product->get_id());
-
-    return flag_url($country_code);
+    $countries_data = get_product_countries_data($product);
+    return $countries_data['primary_flag_url'];
 }
 
 /**
@@ -374,123 +442,8 @@ function get_default_acf_values(string $productType): array
 }
 
 /**
- * Create standard info fields for product type
+ * REMOVED: create_product_info_fields function - moved to BaseInfoTab::createProductInfoFields()
  */
-function create_product_info_fields(string $productType, string $tabName): array
-{
-    $prefix = get_product_field_prefix($productType);
-    $conditionalLogic = create_acf_conditional_logic([$productType]);
-
-    return [
-        [
-            'key' => "field_{$productType}_info_tab",
-            'label' => $tabName,
-            'type' => 'tab',
-            'placement' => 'top',
-            'endpoint' => 0,
-            'conditional_logic' => $conditionalLogic,
-        ],
-        [
-            'key' => "field_{$prefix}product_country_code",
-            'label' => 'Country of Origin',
-            'name' => "{$prefix}product_country_code",
-            'type' => 'select',
-            'choices' => get_country_choices(),
-            'default_value' => '',
-            'allow_null' => 1,
-            'multiple' => 0,
-            'ui' => 1,
-            'return_format' => 'value',
-            'ajax' => 0,
-            'placeholder' => 'Select country...',
-            'instructions' => 'Select the country where the product is manufactured',
-            'conditional_logic' => $conditionalLogic,
-        ],
-        [
-            'key' => "field_{$prefix}content_type",
-            'label' => 'Content Type',
-            'name' => "{$prefix}content_type",
-            'type' => 'select',
-            'choices' => [
-                'video' => 'Video',
-                'audio' => 'Audio',
-                'text' => 'Text',
-            ],
-            'default_value' => 'video',
-            'allow_null' => 0,
-            'multiple' => 0,
-            'ui' => 1,
-            'return_format' => 'value',
-            'ajax' => 0,
-            'placeholder' => 'Select content type...',
-            'instructions' => 'Select the primary content type for this product',
-            'conditional_logic' => $conditionalLogic,
-        ],
-        [
-            'key' => "field_{$prefix}rights_until_date",
-            'label' => 'Rights Valid Until',
-            'name' => "{$prefix}rights_until_date",
-            'type' => 'date_picker',
-            'display_format' => 'm/Y',
-            'return_format' => 'Y-m-d',
-            'first_day' => 1,
-            'instructions' => 'Select the expiration date for product rights',
-            'conditional_logic' => $conditionalLogic,
-        ],
-        [
-            'key' => "field_{$prefix}product_target",
-            'label' => 'Target',
-            'name' => "{$prefix}product_target",
-            'type' => 'text',
-            'default_value' => '',
-            'maxlength' => '',
-            'placeholder' => 'Enter target information...',
-            'instructions' => 'Specify the target information for this product',
-            'conditional_logic' => $conditionalLogic,
-        ],
-        [
-            'key' => "field_{$prefix}product_year",
-            'label' => 'Year',
-            'name' => "{$prefix}product_year",
-            'type' => 'text',
-            'default_value' => '',
-            'maxlength' => 4,
-            'placeholder' => 'YYYY',
-            'instructions' => 'Enter the year for this product',
-            'conditional_logic' => $conditionalLogic,
-        ],
-        [
-            'key' => "field_{$prefix}product_buyout",
-            'label' => 'Buyout',
-            'name' => "{$prefix}product_buyout",
-            'type' => 'text',
-            'default_value' => '',
-            'maxlength' => '',
-            'placeholder' => 'Enter buyout information...',
-            'instructions' => 'Specify the buyout information for this product',
-            'conditional_logic' => $conditionalLogic,
-        ],
-        [
-            'key' => "field_{$prefix}product_label",
-            'label' => 'Product Label',
-            'name' => "{$prefix}product_label",
-            'type' => 'select',
-            'choices' => [
-                'featured' => 'Featured',
-                'easy_adaptable' => 'Easy adaptable',
-            ],
-            'default_value' => '',
-            'allow_null' => 1,
-            'multiple' => 0,
-            'ui' => 1,
-            'return_format' => 'value',
-            'ajax' => 0,
-            'placeholder' => 'Select label...',
-            'instructions' => 'Choose a label for this product',
-            'conditional_logic' => $conditionalLogic,
-        ],
-    ];
-}
 
 /**
  * =========================================
@@ -610,4 +563,60 @@ function get_product_tags_by_category(string $category_slug): array
     }
 
     return ProductTagsHierarchy::getChildrenTerms($category->term_id);
+}
+
+/**
+ * =========================================
+ * NEW HELPER FUNCTIONS FOR MULTIPLE COUNTRIES
+ * =========================================
+ */
+
+/**
+ * Get countries display string from codes array
+ */
+function get_countries_display_string(array $country_codes, string $separator = ', '): string
+{
+    if (empty($country_codes)) {
+        return '';
+    }
+
+    $country_choices = get_country_choices();
+    $display_names = [];
+
+    foreach ($country_codes as $code) {
+        if (!empty($code) && isset($country_choices[$code])) {
+            $display_names[] = $country_choices[$code];
+        }
+    }
+
+    return implode($separator, $display_names);
+}
+
+/**
+ * Get flags HTML for multiple countries
+ */
+function get_countries_flags_html(array $country_codes, string $class = 'size-6 object-cover', bool $show_codes = false): string
+{
+    if (empty($country_codes)) {
+        return '<img src="' . flag_url('') . '" alt="Default flag" class="' . $class . '">';
+    }
+
+    $html = '';
+    foreach ($country_codes as $code) {
+        if (!empty($code)) {
+            $alt = $show_codes ? $code : 'Country flag';
+            $html .= '<img src="' . flag_url($code) . '" alt="' . $alt . '" class="' . $class . ' mr-1" title="' . strtoupper($code) . '">';
+        }
+    }
+
+    return $html;
+}
+
+/**
+ * Check if product has specific country
+ */
+function product_has_country(WC_Product $product, string $country_code): bool
+{
+    $countries_data = get_product_countries_data($product);
+    return in_array(strtoupper($country_code), array_map('strtoupper', $countries_data['codes']));
 }

@@ -44,12 +44,48 @@
                 <div class="flex mb-7">
                     {{-- Блок с флагом страны --}}
                     <div class="flex items-start flex-col gap-2 pr-8">
-                        <span class="text-blue-600 text-xs font-bold">Origin {{ $productMeta['country_code'] ?: '' }}</span>
-                        <span class="rounded-full overflow-hidden flex">
-                            <img src="{{ $productMeta['country_flag_url'] }}"
-                                 alt="{{ $productMeta['country_code'] ?: 'Default flag' }}"
-                                 class="size-6.5 object-cover">
+                        <span class="text-blue-600 text-xs font-bold">
+                            Origin
+                            @if (!empty($productMeta['country_codes']) && count($productMeta['country_codes']) > 1)
+                                ({{ count($productMeta['country_codes']) }} countries)
+                            @elseif (!empty($productMeta['primary_country_code']))
+                                {{ $productMeta['primary_country_code'] }}
+                            @endif
                         </span>
+
+                        {{-- Отображение флагов --}}
+                        <div class="flex items-center space-x-3">
+                            @if (!empty($productMeta['country_flags_urls']))
+                                @php
+                                    $maxFlags = 10; // Максимум флагов для отображения
+                                    $displayFlags = array_slice($productMeta['country_flags_urls'], 0, $maxFlags);
+                                @endphp
+
+                                @foreach ($displayFlags as $index => $flagUrl)
+                                    <span class="rounded-full overflow-hidden {{ $index > 0 ? '-ml-1' : '' }}"
+                                          style="z-index: {{ 10 - $index }}"
+                                          title="{{ $productMeta['country_codes'][$index] ?? '' }}">
+                                        <img src="{{ $flagUrl }}"
+                                             alt="{{ $productMeta['country_codes'][$index] ?? 'Country flag' }}"
+                                             class="size-6.5 object-cover">
+                                    </span>
+                                @endforeach
+                            @else
+                                {{-- Fallback флаг --}}
+                                <span class="rounded-full overflow-hidden flex">
+                                    <img src="{{ $productMeta['primary_country_flag_url'] }}"
+                                         alt="{{ $productMeta['primary_country_code'] ?: 'Default flag' }}"
+                                         class="size-6.5 object-cover">
+                                </span>
+                            @endif
+                        </div>
+
+                        {{-- Отображение названий стран при наведении --}}
+                        @if (!empty($productMeta['countries_display']) && count($productMeta['countries_display']) > 1)
+                            <div class="text-xs text-gray-500 mt-1" title="{{ implode(', ', $productMeta['countries_display']) }}">
+                                {{ count($productMeta['countries_display']) }} countries
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Разделитель -->
