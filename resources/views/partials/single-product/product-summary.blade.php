@@ -5,6 +5,21 @@
     $productMeta = get_product_meta_data($productSummary['id']);
 @endphp
 
+    {{-- <div class="mb-4">
+      <h4 class="font-semibold text-blue-600">ProductSummary данные:</h4>
+      @dump($productSummary)
+    </div> --}}
+
+    {{-- <div class="mb-4">
+      <h4 class="font-semibold text-green-600">ProductAcfFields данные:</h4>
+      @dump($productAcfFields)
+    </div> --}}
+
+    {{-- <div class="mb-4">
+      <h4 class="font-semibold text-purple-600">Все доступные переменные:</h4>
+      @dump(get_defined_vars())
+    </div> --}}
+
 <section class="py-20">
     <div class="container-fluid">
         <div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-start">
@@ -98,11 +113,11 @@
                                               {{ $loop->first ? 'Buyout costs' : 'Compensation Costs' }}
                                             </div>
                                             <div class="text-xs mb-3">
-                                                @foreach ($variation['raw_attributes'] as $attribute_name => $attribute_value)
-                                                    @if (!empty($attribute_value))
-                                                        <span class="attribute">{{ $attribute_value }}</span>
-                                                    @endif
-                                                @endforeach
+                                              @foreach ($variation['attributes'] as $attribute_name => $attribute_value)
+                                                  @if (!empty($attribute_value) && strtolower($attribute_value) !== 'none')
+                                                      <span class="attribute">{{ str_replace('-', ' ', $attribute_value) }}</span>
+                                                  @endif
+                                              @endforeach
                                             </div>
                                             <div class="text-xl font-medium">
                                                 {{ $variation['regular_price'] }} €

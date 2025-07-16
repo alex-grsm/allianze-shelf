@@ -120,7 +120,7 @@
     </div>
 </div>
 
-<script>
+{{-- <script>
 function headerSearch() {
     return {
         isOpen: false,
@@ -432,4 +432,4 @@ function headerSearch() {
         }
     }
 }
-</script>
+</script> --}}

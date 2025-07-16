@@ -1,4 +1,4 @@
-// resources/scripts/components/product-cart.js
+// resources/js/components/product-cart.js
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('cartHandler', (variations = []) => ({
@@ -221,6 +221,12 @@ document.addEventListener('alpine:init', () => {
 
                 // Отправляем запрос
                 const result = await this.sendCartRequest(formData);
+
+                console.log('[Cart] Кнопка нажата');
+                console.log('[Cart] selectedVariation:', this.selectedVariation);
+                console.log('[Cart] ajaxUrl:', window.searchAjax.ajax_url);
+                console.log('[Cart] nonce:', document.querySelector('[data-product-cart]').dataset.nonce);
+                console.log('[Cart] FormData:', [...formData.entries()]);
 
                 // Обрабатываем результат
                 if (result.error) {
