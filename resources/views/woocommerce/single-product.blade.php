@@ -9,14 +9,14 @@ The Template for displaying all single products
 
 @section('content')
 
-@php
+{{-- @php
     $productId = get_the_ID();
     $tags = get_product_tags_display($productId, 25);
     $cardTags = get_product_card_tags($productId, 25);
     $relatedProducts = get_related_products_by_tags($productId, 25);
-@endphp
+@endphp --}}
 
-<div style="background: #f0f0f0; padding: 20px; margin: 70px 0; border-radius: 8px;">
+{{-- <div style="background: #f0f0f0; padding: 20px; margin: 70px 0; border-radius: 8px;">
 
     <h4>🏷️ Tags Testing Debug</h4>
 
@@ -111,7 +111,7 @@ The Template for displaying all single products
             <pre style="font-size: 11px; overflow: auto; max-height: 150px;">{{ json_encode($cardTags, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
         </div>
     </details>
-</div>
+</div> --}}
 
 
 
