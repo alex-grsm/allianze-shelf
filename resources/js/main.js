@@ -18,7 +18,6 @@ function initApp() {
   viewportHeight.init();
   SwiperComponent.init();
 
-  console.log('Asset Overview Video initialized');
 }
 
 if (document.readyState === 'loading') {
