@@ -1,0 +1,373 @@
+/* Улучшенные стили для Asset Overview Video */
+
+.asset-overview-list .video-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #000;
+}
+
+.asset-overview-list .video-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.asset-overview-list .video-container video {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 1rem;
+  background-color: #000;
+  transition: opacity 0.3s ease;
+}
+
+.asset-overview-list .video-container video:focus {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Кастомные контролы */
+.video-custom-controls {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.3) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+  border-radius: 1rem;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.video-custom-controls:hover {
+  opacity: 1 !important;
+}
+
+/* Центральная кнопка play/pause */
+.video-custom-controls .play-pause-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.video-custom-controls .play-pause-btn:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+}
+
+.video-custom-controls .play-pause-btn:active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+/* Кнопка звука */
+.video-custom-controls .mute-btn {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.video-custom-controls .mute-btn:hover {
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Прогресс-бар */
+.progress-container {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.progress-container:hover {
+  height: 0.75rem !important;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.progress-thumb {
+  background: #3b82f6;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+  transition: all 0.3s ease;
+}
+
+.progress-container:hover .progress-thumb {
+  opacity: 1 !important;
+  transform: scale(1.2);
+}
+
+/* Кнопка полноэкранного режима */
+.video-custom-controls .fullscreen-btn {
+  transition: all 0.3s ease;
+}
+
+.video-custom-controls .fullscreen-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Отображение времени */
+.time-display {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Индикатор загрузки */
+.video-loading-indicator {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.video-loading-indicator.hidden {
+  display: none;
+}
+
+/* Улучшенный спиннер */
+.video-loading-indicator .animate-spin {
+  animation: spin 1s linear infinite;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+}
+
+/* Сообщение об ошибке */
+.video-error-indicator {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.video-error-indicator button {
+  transition: all 0.3s ease;
+}
+
+.video-error-indicator button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Сообщение о блокировке автоплея */
+.autoplay-blocked-message {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: slideDown 0.3s ease forwards;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.autoplay-blocked-message button {
+  transition: all 0.3s ease;
+  border-radius: 0.25rem;
+}
+
+.autoplay-blocked-message button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+/* Responsive дизайн */
+@media (max-width: 768px) {
+  .asset-overview-list .video-container {
+    border-radius: 0.75rem;
+  }
+
+  .video-custom-controls {
+    border-radius: 0.75rem;
+  }
+
+  .video-custom-controls .play-pause-btn {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .video-custom-controls .play-pause-btn svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .video-custom-controls .mute-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .video-custom-controls .mute-btn svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .time-display {
+    font-size: 0.75rem;
+  }
+
+  .autoplay-blocked-message {
+    top: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .video-custom-controls .play-pause-btn {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .video-custom-controls .play-pause-btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .progress-container {
+    height: 0.5rem;
+  }
+
+  .progress-container:hover {
+    height: 0.625rem !important;
+  }
+}
+
+/* Анимации */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slideDown {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Утилитарные классы */
+.fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Полноэкранный режим */
+.video-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+  background: black !important;
+  border-radius: 0 !important;
+  object-fit: contain;
+}
+
+/* Улучшенные состояния фокуса для accessibility */
+.video-custom-controls button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.video-custom-controls button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Плавные переходы для всех интерактивных элементов */
+.video-custom-controls * {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Улучшения для темного режима */
+@media (prefers-color-scheme: dark) {
+  .video-error-indicator {
+    background: rgba(31, 41, 55, 0.9);
+    border-color: rgba(75, 85, 99, 0.3);
+  }
+
+  .autoplay-blocked-message {
+    background: rgba(30, 58, 138, 0.9);
+  }
+}
+
+/* Уменьшенная анимация для пользователей с чувствительностью к движению */
+@media (prefers-reduced-motion: reduce) {
+  .video-custom-controls,
+  .video-custom-controls *,
+  .video-loading-indicator,
+  .video-error-indicator,
+  .autoplay-blocked-message {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .video-custom-controls .play-pause-btn:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+
+  .progress-bar::before {
+    animation: none;
+  }
+}

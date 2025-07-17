@@ -25,7 +25,7 @@
             @if (!empty($assetOverviewList['items']) && is_array($assetOverviewList['items']))
                 <div class="asset-overview-list space-y-12">
                     @foreach ($assetOverviewList['items'] as $item)
-                        @if (is_array($item) && !empty($item['description']) && !empty($item['image']))
+                        @if (is_array($item) && !empty($item['description']))
                             <div class="asset-overview-item
                                         @if($item['index'] % 2 === 0) lg:flex-row-reverse @else lg:flex-row @endif
                                         flex flex-col lg:gap-16 gap-8 items-center">
@@ -38,17 +38,75 @@
                                     </div>
                                 </div>
 
-                                {{-- Image --}}
+                                {{-- Media Content --}}
                                 <div class="lg:w-1/2 w-full">
                                     <div class="relative overflow-hidden rounded-2xl shadow-lg group">
-                                        <img src="{{ $item['image']['sizes']['large'] ?? ($item['image']['url'] ?? '') }}"
-                                            alt="{{ $item['image']['alt'] ?? 'Asset overview image' }}"
-                                            class="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
-                                            loading="lazy">
 
-                                        {{-- Hover overlay --}}
-                                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        </div>
+                                        {{-- VIDEO DISPLAY --}}
+                                        @if (!empty($item['media_type']) && $item['media_type'] === 'video' && !empty($item['video']))
+                                            <div class="video-container">
+                                                <video
+                                                    class="w-full h-auto rounded-2xl"
+                                                    @if (!empty($item['video_poster']))
+                                                        poster="{{ $item['video_poster']['sizes']['large'] ?? ($item['video_poster']['url'] ?? '') }}"
+                                                    @endif
+                                                    {{-- Кастомные контролы - НЕ используем атрибут controls --}}
+                                                    @if (!empty($item['video_settings']) && in_array('autoplay', $item['video_settings']) && in_array('muted', $item['video_settings']))
+                                                        autoplay
+                                                    @endif
+                                                    @if (!empty($item['video_settings']) && in_array('loop', $item['video_settings']))
+                                                        loop
+                                                    @endif
+                                                    @if (!empty($item['video_settings']) && in_array('muted', $item['video_settings']))
+                                                        muted
+                                                    @endif
+                                                    preload="metadata"
+                                                    playsinline
+                                                    tabindex="0"
+                                                    {{-- Данные для кастомных контролов --}}
+                                                    data-video-index="{{ $item['index'] }}"
+                                                    data-has-custom-controls="true"
+                                                >
+                                                    <source src="{{ $item['video']['url'] }}" type="{{ $item['video']['mime_type'] ?? 'video/mp4' }}">
+
+                                                    {{-- Fallback для старых браузеров --}}
+                                                    <p class="text-center text-gray-500 py-8">
+                                                        Your browser does not support the video tag.
+                                                        <a href="{{ $item['video']['url'] }}" class="text-blue-600 hover:text-blue-800 underline ml-2">
+                                                            Download video
+                                                        </a>
+                                                    </p>
+                                                </video>
+
+                                                {{-- Video overlay for styling - будет удалено кастомными контролами --}}
+                                                <div class="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-50 transition-opacity duration-300 pointer-events-none rounded-2xl">
+                                                </div>
+                                            </div>
+
+                                        {{-- IMAGE DISPLAY --}}
+                                        @elseif (!empty($item['image']))
+                                            <img src="{{ $item['image']['sizes']['large'] ?? ($item['image']['url'] ?? '') }}"
+                                                alt="{{ $item['image']['alt'] ?? 'Asset overview image' }}"
+                                                class="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                                                loading="lazy">
+
+                                            {{-- Hover overlay for images --}}
+                                            <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            </div>
+
+                                        {{-- FALLBACK если нет медиа --}}
+                                        @else
+                                            <div class="flex items-center justify-center h-64 bg-gray-100 rounded-2xl">
+                                                <div class="text-center text-gray-500">
+                                                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                              d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 110 2h-1v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6H3a1 1 0 110-2h4zM6 6v12h12V6H6zM8 8h8v2H8V8zm0 4h8v2H8v-2z">
+                                                        </path>
+                                                    </svg>
+                                                    <p class="text-sm">No media available</p>
+                                                </div>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -71,4 +129,5 @@
             @endif
         </div>
     </section>
+
 @endif

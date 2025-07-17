@@ -37,10 +37,10 @@
                             {{ $subcategory->name }}
                         </h2>
 
-                        <div class="mt-4">
+                        <div class="mt-4 ej-filter">
                             <button type="button"
-                                class="inline-flex items-center gap-2 px-3 py-1 bg-black  border-2 border-white rounded-4xl text-white text-xl">
-                                <x-svg-icon name="filter" class="" />
+                                class="ej-filter__button inline-flex items-center gap-2 px-3 py-1 neutral-100 border-2 border-black rounded-4xl text-black text-xl">
+                                <x-svg-icon name="filter" class="ej-filter__icon [&_path]:stroke-black" />
                                 <span>Filter</span>
                             </button>
                         </div>
