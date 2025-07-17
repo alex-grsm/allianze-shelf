@@ -16,7 +16,7 @@ class AssetOverviewVideoManager {
 
     initAssetOverviewVideos() {
         const videoContainers = document.querySelectorAll('.asset-overview-list .video-container');
-        console.log('Found video containers:', videoContainers.length);
+        // console.log('Found video containers:', videoContainers.length);
 
         videoContainers.forEach((container, index) => {
             const video = container.querySelector('video');

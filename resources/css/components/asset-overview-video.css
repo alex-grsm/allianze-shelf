@@ -307,10 +307,6 @@
   animation: fadeOut 0.3s ease forwards;
 }
 
-.hidden {
-  display: none !important;
-}
-
 /* Полноэкранный режим */
 .video-fullscreen {
   position: fixed !important;
