@@ -3,6 +3,7 @@ import Alpine from 'alpinejs';
 import viewportHeight from './helpers/viewport-height.js';
 import './components/product-cart.js';
 import './components/header-search.js';
+import './components/asset-overview-video.js';
 
 import { showGlobalAlert, hideGlobalAlert } from './helpers/alert.js';
 import SwiperComponent from './components/swiper.js';
@@ -17,6 +18,7 @@ function initApp() {
   viewportHeight.init();
   SwiperComponent.init();
 
+  console.log('Asset Overview Video initialized');
 }
 
 if (document.readyState === 'loading') {

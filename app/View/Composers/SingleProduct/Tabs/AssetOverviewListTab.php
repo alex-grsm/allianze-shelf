@@ -52,7 +52,7 @@ class AssetOverviewListTab extends BaseTab
                 'label' => 'Asset Overview List Items',
                 'name' => 'asset_overview_list_items',
                 'type' => 'repeater',
-                'instructions' => 'Add items for asset overview list with description and images.',
+                'instructions' => 'Add items for asset overview list with description and media (image or video).',
                 'required' => 0,
                 'collapsed' => 'field_asset_overview_item_description',
                 'min' => 0,
@@ -86,6 +86,23 @@ class AssetOverviewListTab extends BaseTab
                         'maxlength' => 800,
                     ],
                     [
+                        'key' => 'field_asset_overview_item_media_type',
+                        'label' => 'Media Type',
+                        'name' => 'item_media_type',
+                        'type' => 'select',
+                        'instructions' => 'Choose the type of media for this item',
+                        'required' => 1,
+                        'choices' => [
+                            'image' => 'Image',
+                            'video' => 'Video',
+                        ],
+                        'default_value' => 'image',
+                        'allow_null' => 0,
+                        'multiple' => 0,
+                        'ui' => 1,
+                        'return_format' => 'value',
+                    ],
+                    [
                         'key' => 'field_asset_overview_item_image',
                         'label' => 'Item Image',
                         'name' => 'item_image',
@@ -95,6 +112,79 @@ class AssetOverviewListTab extends BaseTab
                         'return_format' => 'array',
                         'preview_size' => 'medium',
                         'library' => 'all',
+                        'conditional_logic' => [
+                            [
+                                [
+                                    'field' => 'field_asset_overview_item_media_type',
+                                    'operator' => '==',
+                                    'value' => 'image',
+                                ],
+                            ],
+                        ],
+                    ],
+                    [
+                        'key' => 'field_asset_overview_item_video',
+                        'label' => 'Item Video',
+                        'name' => 'item_video',
+                        'type' => 'file',
+                        'instructions' => 'Upload video file for this asset overview item. Supported formats: MP4, WebM, AVI, MOV. Custom video controls will be used automatically.',
+                        'required' => 1,
+                        'return_format' => 'array',
+                        'library' => 'all',
+                        'mime_types' => 'mp4,webm,avi,mov,m4v',
+                        'conditional_logic' => [
+                            [
+                                [
+                                    'field' => 'field_asset_overview_item_media_type',
+                                    'operator' => '==',
+                                    'value' => 'video',
+                                ],
+                            ],
+                        ],
+                    ],
+                    [
+                        'key' => 'field_asset_overview_item_video_poster',
+                        'label' => 'Video Poster Image',
+                        'name' => 'item_video_poster',
+                        'type' => 'image',
+                        'instructions' => 'Upload poster image for the video (optional). This will be shown before the video plays.',
+                        'required' => 0,
+                        'return_format' => 'array',
+                        'preview_size' => 'medium',
+                        'library' => 'all',
+                        'conditional_logic' => [
+                            [
+                                [
+                                    'field' => 'field_asset_overview_item_media_type',
+                                    'operator' => '==',
+                                    'value' => 'video',
+                                ],
+                            ],
+                        ],
+                    ],
+                    [
+                        'key' => 'field_asset_overview_item_video_settings',
+                        'label' => 'Video Settings',
+                        'name' => 'item_video_settings',
+                        'type' => 'checkbox',
+                        'instructions' => 'Select video playback options. Custom video controls will be used automatically.',
+                        'required' => 0,
+                        'choices' => [
+                            'autoplay' => 'Autoplay video (only works when muted)',
+                            'loop' => 'Loop video continuously',
+                            'muted' => 'Muted by default',
+                        ],
+                        'default_value' => ['muted'], // Лучше по умолчанию muted для автоплея
+                        'layout' => 'vertical',
+                        'conditional_logic' => [
+                            [
+                                [
+                                    'field' => 'field_asset_overview_item_media_type',
+                                    'operator' => '==',
+                                    'value' => 'video',
+                                ],
+                            ],
+                        ],
                     ],
                 ],
             ],
@@ -175,16 +265,25 @@ class AssetOverviewListTab extends BaseTab
     }
 
     /**
-     * Получить только активные items с изображениями и описанием
+     * Получить только активные items с медиа и описанием
      */
     private static function getActiveItems(WC_Product $product): array
     {
         $items = self::getRepeaterFieldValue('asset_overview_list_items', $product->get_id());
 
         return array_filter($items, function($item) {
-            return !empty($item['item_enabled'])
-                && !empty($item['item_description'])
-                && !empty($item['item_image']);
+            if (empty($item['item_enabled']) || empty($item['item_description'])) {
+                return false;
+            }
+
+            $media_type = $item['item_media_type'] ?? 'image';
+
+            // Проверяем наличие нужного медиа в зависимости от типа
+            if ($media_type === 'video') {
+                return !empty($item['item_video']);
+            } else {
+                return !empty($item['item_image']);
+            }
         });
     }
 
@@ -197,20 +296,53 @@ class AssetOverviewListTab extends BaseTab
         $formatted_items = [];
 
         foreach ($items as $index => $item) {
-            $imageData = self::formatImageData($item['item_image']);
+            $media_type = $item['item_media_type'] ?? 'image';
+            $formatted_item = [
+                'index' => $index,
+                'description' => $item['item_description'],
+                'media_type' => $media_type,
+                'slug' => 'item-' . ($index + 1),
+            ];
 
-            if ($imageData) {
-                $formatted_items[] = [
-                    'index' => $index, // Для чередования left/right в шаблоне
-                    'description' => $item['item_description'],
-                    'image' => $item['item_image'], // Оригинальные данные для совместимости
-                    'image_data' => $imageData, // Новые форматированные данные
-                    'slug' => 'item-' . ($index + 1),
-                ];
+            if ($media_type === 'video') {
+                $formatted_item['video'] = $item['item_video'];
+                $formatted_item['video_poster'] = $item['item_video_poster'] ?? null;
+                $formatted_item['video_settings'] = $item['item_video_settings'] ?? ['muted'];
+                $formatted_item['video_data'] = self::formatVideoData($item['item_video'], $item['item_video_settings'] ?? ['muted']);
+            } else {
+                $imageData = self::formatImageData($item['item_image']);
+                if (!$imageData) {
+                    continue; // Пропускаем, если нет изображения
+                }
+                $formatted_item['image'] = $item['item_image'];
+                $formatted_item['image_data'] = $imageData;
             }
+
+            $formatted_items[] = $formatted_item;
         }
 
         return $formatted_items;
+    }
+
+    /**
+     * Форматировать данные видео
+     */
+    private static function formatVideoData(array $video, array $settings = ['muted']): array
+    {
+        return [
+            'url' => $video['url'] ?? '',
+            'filename' => $video['filename'] ?? '',
+            'title' => $video['title'] ?? '',
+            'alt' => $video['alt'] ?? '',
+            'mime_type' => $video['mime_type'] ?? '',
+            'filesize' => $video['filesize'] ?? 0,
+            // Всегда используем кастомные контролы
+            'has_controls' => false, // HTML5 контролы отключены
+            'use_custom_controls' => true, // Всегда используем кастомные
+            'autoplay' => in_array('autoplay', $settings),
+            'loop' => in_array('loop', $settings),
+            'muted' => in_array('muted', $settings),
+        ];
     }
 
     /**
@@ -274,14 +406,17 @@ class AssetOverviewListTab extends BaseTab
                 [
                     'item_enabled' => true,
                     'item_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.',
+                    'item_media_type' => 'image',
                 ],
                 [
                     'item_enabled' => true,
                     'item_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.',
+                    'item_media_type' => 'image',
                 ],
                 [
                     'item_enabled' => true,
                     'item_description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.',
+                    'item_media_type' => 'image',
                 ],
             ];
 
@@ -308,6 +443,7 @@ class AssetOverviewListTab extends BaseTab
                 [
                     'item_enabled' => true,
                     'item_description' => 'Overview of the main assets and resources included in this product.',
+                    'item_media_type' => 'image',
                 ],
             ];
 

@@ -22,7 +22,7 @@
     "sharp": "^0.34.3",
     "svgo": "^4.0.0",
     "tailwindcss": "^4.1.11",
-    "vite": "^7.0.4",
+    "vite": "^7.0.5",
     "vite-plugin-image-optimizer": "^2.0.2"
   },
   "dependencies": {

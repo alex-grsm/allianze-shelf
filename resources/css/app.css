@@ -4,6 +4,7 @@
 @import './styles/utilities.css';
 @import './components/header.css';
 @import './components/contact-form.css';
+@import './components/asset-overview-video.css';
 @source "../views/";
 @source "../../app/";
 
@@ -74,6 +75,12 @@
   .subcategory-block:first-child .subcategory-block__title {
     @apply text-white;
   }
+  .subcategory-block:first-child .ej-filter__button {
+    @apply !bg-black !text-white !border-white;
+  }
+  .subcategory-block:first-child .ej-filter__icon path {
+    stroke: var(--color-white) !important;
+  }
 }
 
 @layer components {
@@ -85,4 +92,3 @@
     @apply opacity-100 translate-x-0 blur-none;
   }
 }
-
