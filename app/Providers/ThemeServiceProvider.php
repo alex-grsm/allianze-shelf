@@ -6,6 +6,7 @@ use Roots\Acorn\Sage\SageServiceProvider;
 use App\Taxonomies\ProductTagsHierarchy;
 use App\WooCommerce\CartAjax;
 use App\View\Composers\SingleProduct\ProductAcfFields;
+use App\View\Composers\FrontPage;
 use App\Admin\ProductColumnsManager;
 use App\Admin\AdminEnhancements;
 use App\Search\SearchService;
@@ -38,6 +39,9 @@ class ThemeServiceProvider extends SageServiceProvider
         // Регистрируем сервис меню
         $this->registerMenuService();
 
+        // Регистрируем сервис главной страницы
+        $this->registerFrontPageService();
+
         // Регистрируем админские сервисы
         $this->registerAdminServices();
 
@@ -64,6 +68,14 @@ class ThemeServiceProvider extends SageServiceProvider
     private function registerMenuService(): void
     {
         MenuHelper::register();
+    }
+
+    /**
+     * Регистрация сервиса главной страницы
+     */
+    private function registerFrontPageService(): void
+    {
+        FrontPage::register();
     }
 
     /**

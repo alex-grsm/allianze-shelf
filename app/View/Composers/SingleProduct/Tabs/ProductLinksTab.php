@@ -43,7 +43,7 @@ class ProductLinksTab extends BaseTab
                 'instructions' => 'Enter description for links section.',
                 'required' => 0,
                 'placeholder' => 'The following links give you access to...',
-                'maxlength' => 200,
+                'maxlength' => 2000,
                 'conditional_logic' => create_acf_conditional_logic(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
             ],
             [

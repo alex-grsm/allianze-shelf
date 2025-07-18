@@ -44,7 +44,7 @@ class AssetOverviewListTab extends BaseTab
                 'required' => 0,
                 'rows' => 3,
                 'placeholder' => 'Describe what this asset overview contains...',
-                'maxlength' => 500,
+                'maxlength' => 3000,
                 'conditional_logic' => create_acf_conditional_logic(['social_media_assets', 'newsletter', 'landing_page']),
             ],
             [

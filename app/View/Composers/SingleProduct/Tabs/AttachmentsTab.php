@@ -44,7 +44,7 @@ class AttachmentsTab extends BaseTab
                 'required' => 0,
                 'rows' => 3,
                 'placeholder' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...',
-                'maxlength' => 400,
+                'maxlength' => 3000,
                 'conditional_logic' => create_acf_conditional_logic(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
             ],
             [
