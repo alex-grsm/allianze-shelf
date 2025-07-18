@@ -35,7 +35,7 @@
             @endphp
 
             @if ($imageUrl)
-                <img src="{{ $imageUrl }}" alt="{{ $altText }}" class="w-full min-h-87.5 object-cover rounded-2xl"
+                <img src="{{ $imageUrl }}" alt="{{ $altText }}" class="w-full min-h-87.5 object-cover rounded-2xl max-h-[350px]"
                     loading="lazy">
             @else
                 {{-- Placeholder если нет изображения --}}

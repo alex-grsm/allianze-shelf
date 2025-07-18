@@ -81,6 +81,13 @@
   .subcategory-block:first-child .ej-filter__icon path {
     stroke: var(--color-white) !important;
   }
+
+  .main-category-block:first-child .main-category-block__content {
+    @apply -mt-103.5 z-20;
+  }
+  .main-category-block:first-child .main-category-block__title {
+    @apply text-white;
+  }
 }
 
 @layer components {

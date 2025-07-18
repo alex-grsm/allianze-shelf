@@ -44,7 +44,7 @@ class BuyoutDetailsTab extends BaseTab
                 'required' => 0,
                 'rows' => 4,
                 'placeholder' => 'Enter buyout details description...',
-                'maxlength' => 500,
+                'maxlength' => 3000,
                 'conditional_logic' => create_acf_conditional_logic(['companies', 'social_media_assets', 'newsletter', 'landing_page']),
             ],
             [

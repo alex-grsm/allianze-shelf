@@ -14,7 +14,7 @@
             class="w-full h-full object-cover"
           >
           {{-- Overlay для затемнения --}}
-          <div class="absolute inset-0 bg-gradient-to-r from-black/90 to-black/0"></div>
+          <div class="absolute inset-0 bg-gradient-to-r from-black/90 to-black/60"></div>
         </div>
 
         {{-- Content Container --}}
