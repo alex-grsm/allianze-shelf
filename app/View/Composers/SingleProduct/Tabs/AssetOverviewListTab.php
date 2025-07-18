@@ -83,7 +83,7 @@ class AssetOverviewListTab extends BaseTab
                         'required' => 1,
                         'rows' => 4,
                         'placeholder' => 'Lorem ipsum dolor sit amet...',
-                        'maxlength' => 800,
+                        'maxlength' => 5000,
                     ],
                     [
                         'key' => 'field_asset_overview_item_media_type',
