@@ -4,6 +4,7 @@ class AssetOverviewVideoManager {
     constructor() {
         this.videos = new Map();
         this.userInteracted = false;
+        this.sizeStrategy = 'adaptive'; // 'adaptive', 'fixed', 'portrait', 'auto'
         this.init();
     }
 
@@ -43,9 +44,11 @@ class AssetOverviewVideoManager {
 
         if (!videoManager.video.hasAttribute('controls')) {
             this.setupCustomControls(videoManager);
-            // Инициализируем состояние кнопки mute после создания контролов
             this.initializeMuteButtonState(videoManager);
         }
+
+        // Применяем стратегию размера
+        this.applySizeStrategy(videoManager, this.sizeStrategy);
 
         this.checkAutoplayCapability(videoManager);
     }
@@ -289,7 +292,6 @@ class AssetOverviewVideoManager {
         updateTime();
     }
 
-    // === НОВЫЙ МЕТОД ===
     initializeMuteButtonState(videoManager) {
         const { video, customControls } = videoManager;
 
@@ -308,7 +310,6 @@ class AssetOverviewVideoManager {
         }
     }
 
-    // === НОВЫЙ МЕТОД ===
     syncMuteButtonState(videoManager) {
         const { video, customControls } = videoManager;
 
@@ -327,9 +328,7 @@ class AssetOverviewVideoManager {
     }
 
     togglePlayPause(videoManager) {
-        const { video, customControls } = videoManager;
-        const playIcon = customControls.querySelector('.play-icon');
-        const pauseIcon = customControls.querySelector('.pause-icon');
+        const { video } = videoManager;
 
         if (video.paused) {
             this.playVideo(videoManager);
@@ -366,7 +365,6 @@ class AssetOverviewVideoManager {
         }
     }
 
-    // === ОБНОВЛЕННЫЙ МЕТОД ===
     setupVideoHandlers(videoManager) {
         const { video, container, index } = videoManager;
 
@@ -415,7 +413,6 @@ class AssetOverviewVideoManager {
             this.updatePlayButtonState(videoManager, false);
         });
 
-        // === НОВЫЙ ОБРАБОТЧИК ===
         // Отслеживаем изменения состояния muted
         video.addEventListener('volumechange', () => {
             this.syncMuteButtonState(videoManager);
@@ -455,7 +452,151 @@ class AssetOverviewVideoManager {
         }
     }
 
-    // Утилитарные методы
+    // === МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ РАЗМЕРАМИ ===
+
+    /**
+     * Применяет стратегию размера к видеоконтейнеру
+     */
+    applySizeStrategy(videoManager, strategy = this.sizeStrategy) {
+        const { container, video } = videoManager;
+
+        // Удаляем все существующие классы размера
+        container.classList.remove(
+            'video-container-fixed',
+            'video-container-adaptive',
+            'video-container-portrait'
+        );
+
+        switch (strategy) {
+            case 'fixed':
+                container.classList.add('video-container-fixed');
+                break;
+            case 'adaptive':
+                container.classList.add('video-container-adaptive');
+                break;
+            case 'portrait':
+                container.classList.add('video-container-portrait');
+                break;
+            case 'auto':
+                this.autoDetectSizeStrategy(videoManager);
+                break;
+        }
+    }
+
+    /**
+     * Автоматически определяет подходящую стратегию размера
+     */
+    autoDetectSizeStrategy(videoManager) {
+        const { video, container } = videoManager;
+
+        const checkVideoSize = () => {
+            if (video.videoWidth && video.videoHeight) {
+                const aspectRatio = video.videoWidth / video.videoHeight;
+
+                console.log(`Video ${videoManager.index}: ${video.videoWidth}x${video.videoHeight}, aspect ratio: ${aspectRatio.toFixed(2)}`);
+
+                // Удаляем старые классы
+                container.classList.remove(
+                    'video-container-fixed',
+                    'video-container-adaptive',
+                    'video-container-portrait'
+                );
+
+                if (aspectRatio < 0.8) {
+                    // Портретное видео (например, 9:16)
+                    container.classList.add('video-container-portrait');
+                    console.log(`Video ${videoManager.index}: применена портретная стратегия`);
+                } else if (video.videoHeight > 800) {
+                    // Очень высокое видео
+                    container.classList.add('video-container-adaptive');
+                    console.log(`Video ${videoManager.index}: применена адаптивная стратегия (высокое видео)`);
+                } else {
+                    // Обычное альбомное видео
+                    container.classList.add('video-container-adaptive');
+                    console.log(`Video ${videoManager.index}: применена адаптивная стратегия (обычное видео)`);
+                }
+            }
+        };
+
+        if (video.readyState >= 1) {
+            checkVideoSize();
+        } else {
+            video.addEventListener('loadedmetadata', checkVideoSize, { once: true });
+        }
+    }
+
+    /**
+     * Устанавливает глобальную стратегию размера для всех видео
+     */
+    setGlobalSizeStrategy(strategy) {
+        this.sizeStrategy = strategy;
+        this.videos.forEach((videoManager) => {
+            this.applySizeStrategy(videoManager, strategy);
+        });
+    }
+
+    /**
+     * Получает информацию о размерах всех видео
+     */
+    getVideoSizeInfo() {
+        const info = Array.from(this.videos.values()).map((videoManager) => {
+            const { video, container } = videoManager;
+            return {
+                index: videoManager.index,
+                videoWidth: video.videoWidth,
+                videoHeight: video.videoHeight,
+                aspectRatio: video.videoWidth && video.videoHeight ?
+                    (video.videoWidth / video.videoHeight).toFixed(2) : 'unknown',
+                containerClasses: container.className,
+                appliedStrategy: this.getAppliedStrategy(container)
+            };
+        });
+
+        console.table(info);
+        return info;
+    }
+
+    /**
+     * Определяет какая стратегия размера применена к контейнеру
+     */
+    getAppliedStrategy(container) {
+        if (container.classList.contains('video-container-fixed')) return 'fixed';
+        if (container.classList.contains('video-container-adaptive')) return 'adaptive';
+        if (container.classList.contains('video-container-portrait')) return 'portrait';
+        return 'default';
+    }
+
+    /**
+     * Добавляет CSS-переменные для динамического управления размерами
+     */
+    setCustomVideoSize(videoManager, options = {}) {
+        const { container } = videoManager;
+        const {
+            maxHeight = '70vh',
+            maxWidth = '100%',
+            objectFit = 'contain',
+            aspectRatio = null
+        } = options;
+
+        container.style.setProperty('--video-max-height', maxHeight);
+        container.style.setProperty('--video-max-width', maxWidth);
+        container.style.setProperty('--video-object-fit', objectFit);
+
+        if (aspectRatio) {
+            container.style.setProperty('--video-aspect-ratio', aspectRatio);
+            container.style.aspectRatio = aspectRatio;
+        }
+
+        const video = container.querySelector('video');
+        if (video) {
+            video.style.maxHeight = maxHeight;
+            video.style.maxWidth = maxWidth;
+            video.style.objectFit = objectFit;
+        }
+    }
+
+    // === УТИЛИТАРНЫЕ МЕТОДЫ ===
+
     playVideo(videoManager) {
         const { video, index } = videoManager;
 
@@ -490,7 +631,7 @@ class AssetOverviewVideoManager {
     }
 
     setupVideoLazyLoading(videoManager) {
-        const { video, index } = videoManager;
+        const { video } = videoManager;
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -615,7 +756,8 @@ class AssetOverviewVideoManager {
         }, { once: true });
     }
 
-    // Публичные методы API
+    // === ПУБЛИЧНЫЕ МЕТОДЫ API ===
+
     playAll() {
         this.videos.forEach((videoManager) => {
             if (videoManager.video.muted) {
@@ -644,7 +786,6 @@ class AssetOverviewVideoManager {
         });
     }
 
-    // === ОБНОВЛЕННЫЙ МЕТОД ===
     updateMuteButtonState(videoManager, isMuted) {
         const { customControls } = videoManager;
         if (!customControls) return;
@@ -671,7 +812,11 @@ class AssetOverviewVideoManager {
             autoplay: videoManager.video.hasAttribute('autoplay'),
             controls: videoManager.video.hasAttribute('controls'),
             currentTime: videoManager.video.currentTime,
-            duration: videoManager.video.duration
+            duration: videoManager.video.duration,
+            videoWidth: videoManager.video.videoWidth,
+            videoHeight: videoManager.video.videoHeight,
+            aspectRatio: videoManager.video.videoWidth && videoManager.video.videoHeight ?
+                (videoManager.video.videoWidth / videoManager.video.videoHeight).toFixed(2) : 'unknown'
         }));
 
         console.table(info);
@@ -682,8 +827,9 @@ class AssetOverviewVideoManager {
 // Инициализация
 const videoManager = new AssetOverviewVideoManager();
 
-// Экспорт в глобальную область видимости для обратной совместимости
+// Экспорт в глобальную область видимости
 window.AssetOverviewVideo = {
+    // Базовые методы
     playAll: () => videoManager.playAll(),
     pauseAll: () => videoManager.pauseAll(),
     muteAll: () => videoManager.muteAll(),
@@ -694,7 +840,85 @@ window.AssetOverviewVideo = {
         if (videoManagerInstance) {
             videoManager.playVideo(videoManagerInstance);
         }
+    },
+
+    // Управление размерами
+    setSizeStrategy: (strategy) => videoManager.setGlobalSizeStrategy(strategy),
+    getVideoSizeInfo: () => videoManager.getVideoSizeInfo(),
+
+    // Применение стратегий к отдельным видео
+    applyFixedSize: (videoElement) => {
+        const vm = videoManager.videos.get(videoElement);
+        if (vm) videoManager.applySizeStrategy(vm, 'fixed');
+    },
+
+    applyAdaptiveSize: (videoElement) => {
+        const vm = videoManager.videos.get(videoElement);
+        if (vm) videoManager.applySizeStrategy(vm, 'adaptive');
+    },
+
+    applyPortraitSize: (videoElement) => {
+        const vm = videoManager.videos.get(videoElement);
+        if (vm) videoManager.applySizeStrategy(vm, 'portrait');
+    },
+
+    applyAutoSize: (videoElement) => {
+        const vm = videoManager.videos.get(videoElement);
+        if (vm) videoManager.applySizeStrategy(vm, 'auto');
+    },
+
+    // Кастомные размеры
+    setCustomSize: (videoElement, options) => {
+        const vm = videoManager.videos.get(videoElement);
+        if (vm) videoManager.setCustomVideoSize(vm, options);
+    },
+
+    // Предустановленные размеры
+    presets: {
+        mobile: () => videoManager.setGlobalSizeStrategy('adaptive'),
+        desktop: () => videoManager.setGlobalSizeStrategy('adaptive'),
+        fullHeight: () => {
+            videoManager.videos.forEach((vm) => {
+                videoManager.setCustomVideoSize(vm, {
+                    maxHeight: '100vh',
+                    objectFit: 'contain'
+                });
+            });
+        },
+        compact: () => {
+            videoManager.videos.forEach((vm) => {
+                videoManager.setCustomVideoSize(vm, {
+                    maxHeight: '400px',
+                    objectFit: 'cover'
+                });
+            });
+        }
     }
+};
+
+// Утилитарные функции для быстрого применения размеров
+window.setAllVideosMaxHeight = (height) => {
+    videoManager.videos.forEach((vm) => {
+        videoManager.setCustomVideoSize(vm, { maxHeight: height });
+    });
+};
+
+window.resetVideoSizes = () => {
+    videoManager.videos.forEach((vm) => {
+        vm.container.style.removeProperty('--video-max-height');
+        vm.container.style.removeProperty('--video-max-width');
+        vm.container.style.removeProperty('--video-object-fit');
+        vm.container.style.removeProperty('--video-aspect-ratio');
+        vm.container.style.aspectRatio = '';
+
+        const video = vm.container.querySelector('video');
+        if (video) {
+            video.style.maxHeight = '';
+            video.style.maxWidth = '';
+            video.style.objectFit = '';
+        }
+    });
+    videoManager.setGlobalSizeStrategy('adaptive');
 };
 
 // Утилитарная функция для ручного скрытия индикаторов загрузки

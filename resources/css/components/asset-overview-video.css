@@ -1,5 +1,15 @@
-/* Улучшенные стили для Asset Overview Video */
+/* resources/css/components/asset-overview-video.css */
 
+/* CSS переменные для управления размерами */
+:root {
+  --video-default-max-height: min(600px, 70vh);
+  --video-default-max-width: 100%;
+  --video-default-object-fit: contain;
+  --video-mobile-max-height: min(400px, 60vh);
+  --video-compact-max-height: 400px;
+}
+
+/* Основные стили для Asset Overview Video */
 .asset-overview-list .video-container {
   position: relative;
   overflow: hidden;
@@ -7,6 +17,11 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: #000;
+  /* Ограничение размера видео */
+  max-height: var(--video-max-height, var(--video-default-max-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .asset-overview-list .video-container:hover {
@@ -15,12 +30,16 @@
 }
 
 .asset-overview-list .video-container video {
-  width: 100%;
+  width: var(--video-max-width, var(--video-default-max-width));
   height: auto;
   display: block;
   border-radius: 1rem;
   background-color: #000;
   transition: opacity 0.3s ease;
+  /* Ключевые свойства для ограничения размера */
+  max-height: var(--video-max-height, var(--video-default-max-height));
+  max-width: var(--video-max-width, var(--video-default-max-width));
+  object-fit: var(--video-object-fit, var(--video-default-object-fit));
 }
 
 .asset-overview-list .video-container video:focus {
@@ -191,10 +210,151 @@
   transform: scale(1.1);
 }
 
+/* Стратегии размеров */
+
+/* Фиксированный размер */
+.asset-overview-list .video-container-fixed {
+  height: 600px !important;
+  max-height: 600px !important;
+}
+
+.asset-overview-list .video-container-fixed video {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* Адаптивный размер */
+.asset-overview-list .video-container-adaptive {
+  max-height: 70vh;
+}
+
+.asset-overview-list .video-container-adaptive video {
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+/* Портретные видео */
+.asset-overview-list .video-container-portrait {
+  aspect-ratio: 9/16;
+  max-height: min(600px, 80vh);
+}
+
+.asset-overview-list .video-container-portrait video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Утилитарные классы для размеров */
+.video-size-small {
+  --video-max-height: 300px;
+}
+
+.video-size-medium {
+  --video-max-height: 500px;
+}
+
+.video-size-large {
+  --video-max-height: 700px;
+}
+
+.video-size-full {
+  --video-max-height: 100vh;
+}
+
+.video-size-compact {
+  --video-max-height: var(--video-compact-max-height);
+  --video-object-fit: cover;
+}
+
+/* Предустановленные размеры */
+.video-preset-mobile {
+  --video-max-height: min(400px, 60vh);
+  --video-object-fit: contain;
+}
+
+.video-preset-desktop {
+  --video-max-height: min(600px, 70vh);
+  --video-object-fit: contain;
+}
+
+.video-preset-hero {
+  --video-max-height: 80vh;
+  --video-object-fit: cover;
+}
+
+.video-preset-thumbnail {
+  --video-max-height: 200px;
+  --video-max-width: 300px;
+  --video-object-fit: cover;
+}
+
+.video-preset-portrait {
+  --video-max-height: min(600px, 80vh);
+  --video-aspect-ratio: 9/16;
+  --video-object-fit: cover;
+  aspect-ratio: var(--video-aspect-ratio);
+}
+
+.video-preset-landscape {
+  --video-max-height: min(500px, 60vh);
+  --video-aspect-ratio: 16/9;
+  --video-object-fit: contain;
+  aspect-ratio: var(--video-aspect-ratio);
+}
+
+/* Соотношения сторон */
+.video-aspect-16-9 {
+  --video-aspect-ratio: 16/9;
+  aspect-ratio: var(--video-aspect-ratio);
+}
+
+.video-aspect-4-3 {
+  --video-aspect-ratio: 4/3;
+  aspect-ratio: var(--video-aspect-ratio);
+}
+
+.video-aspect-1-1 {
+  --video-aspect-ratio: 1/1;
+  aspect-ratio: var(--video-aspect-ratio);
+}
+
+.video-aspect-9-16 {
+  --video-aspect-ratio: 9/16;
+  aspect-ratio: var(--video-aspect-ratio);
+}
+
+/* Object-fit стили */
+.video-fit-contain {
+  --video-object-fit: contain;
+}
+
+.video-fit-cover {
+  --video-object-fit: cover;
+}
+
+.video-fit-fill {
+  --video-object-fit: fill;
+}
+
+.video-fit-scale-down {
+  --video-object-fit: scale-down;
+}
+
 /* Responsive дизайн */
 @media (max-width: 768px) {
+  :root {
+    --video-default-max-height: var(--video-mobile-max-height);
+  }
+
   .asset-overview-list .video-container {
     border-radius: 0.75rem;
+    max-height: var(--video-max-height, var(--video-mobile-max-height));
+  }
+
+  .asset-overview-list .video-container video {
+    max-height: var(--video-max-height, var(--video-mobile-max-height));
   }
 
   .video-custom-controls {
@@ -232,9 +392,29 @@
     padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
   }
+
+  .video-preset-mobile {
+    --video-max-height: min(350px, 50vh);
+  }
+
+  .video-preset-portrait {
+    --video-max-height: min(500px, 70vh);
+  }
 }
 
 @media (max-width: 480px) {
+  :root {
+    --video-default-max-height: min(300px, 50vh);
+  }
+
+  .asset-overview-list .video-container {
+    max-height: min(300px, 50vh);
+  }
+
+  .asset-overview-list .video-container video {
+    max-height: min(300px, 50vh);
+  }
+
   .video-custom-controls .play-pause-btn {
     width: 3.5rem;
     height: 3.5rem;
@@ -251,6 +431,25 @@
 
   .progress-container:hover {
     height: 0.625rem !important;
+  }
+
+  .video-preset-mobile,
+  .video-preset-desktop {
+    --video-max-height: min(280px, 45vh);
+  }
+
+  .video-preset-portrait {
+    --video-max-height: min(400px, 60vh);
+  }
+
+  .video-preset-hero {
+    --video-max-height: 60vh;
+  }
+}
+
+@media (min-width: 1200px) {
+  .video-preset-desktop {
+    --video-max-height: min(700px, 70vh);
   }
 }
 
@@ -307,6 +506,22 @@
   animation: fadeOut 0.3s ease forwards;
 }
 
+.video-no-max-height {
+  --video-max-height: none;
+}
+
+.video-no-max-width {
+  --video-max-width: none;
+}
+
+.video-full-container {
+  --video-max-height: 100%;
+  --video-max-width: 100%;
+  --video-object-fit: cover;
+  height: 100%;
+  width: 100%;
+}
+
 /* Полноэкранный режим */
 .video-fullscreen {
   position: fixed !important;
@@ -318,6 +533,23 @@
   background: black !important;
   border-radius: 0 !important;
   object-fit: contain;
+}
+
+/* Состояния */
+.video-container.is-loading {
+  --video-object-fit: contain;
+  background: #f0f0f0;
+}
+
+.video-container.has-error {
+  --video-object-fit: contain;
+  background: #fee;
+}
+
+.video-container.is-fullscreen {
+  --video-max-height: 100vh;
+  --video-max-width: 100vw;
+  --video-object-fit: contain;
 }
 
 /* Улучшенные состояния фокуса для accessibility */
